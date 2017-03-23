@@ -27,6 +27,7 @@ import (
 	"github.com/google/badwolf/triple"
 	"github.com/google/badwolf/triple/literal"
 	"github.com/google/badwolf/triple/node"
+	cloudrdf "github.com/wallix/awless/cloud/rdf"
 	"github.com/wallix/awless/graph/internal/rdf"
 )
 
@@ -79,6 +80,167 @@ func (res *Resource) Same(other *Resource) bool {
 
 func (res *Resource) toRDFNode() (*node.Node, error) {
 	return node.NewNodeFromStrings("/"+res.kind, res.id)
+}
+
+func (res *Resource) marshalFullRDF() ([]*triple.Triple, error) {
+	var triples []*triple.Triple
+
+	triples = append(triples, rdf.Subject(res.id).Predicate(cloudrdf.RdfType).Object(strings.Title(res.Type()), cloudrdf.CloudOwlNS))
+
+	for key, value := range res.Properties {
+		propId, err := getPropertyRDFId(key)
+		if err != nil {
+			return triples, fmt.Errorf("marshalling property: %s", err)
+		}
+
+		propType, err := getPropertyDefinedBy(propId)
+		if err != nil {
+			return triples, fmt.Errorf("marshalling property: %s", err)
+		}
+		dataType, err := getPropertyDataType(propId)
+		if err != nil {
+			return triples, fmt.Errorf("marshalling property: %s", err)
+		}
+		switch propType {
+		case cloudrdf.RdfsLiteral:
+			switch dataType {
+			case cloudrdf.XsdDateTime:
+				datetime, ok := value.(time.Time)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a time, got a %T", value)
+				}
+				txt, _ := datetime.MarshalText()
+				triples = append(triples, rdf.Subject(res.id).Predicate(propId).Literal(string(txt)))
+			default:
+				triples = append(triples, rdf.Subject(res.id).Predicate(propId).Literal(fmt.Sprint(value)))
+			}
+
+		case cloudrdf.RdfsClass:
+			triples = append(triples, rdf.Subject(res.id).Predicate(rdf.TrimNS(propId), cloudrdf.CloudNS).Object(fmt.Sprint(value)))
+		case cloudrdf.RdfsList:
+			switch dataType {
+			case cloudrdf.XsdString:
+				list, ok := value.([]string)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a string slice, got a %T", value)
+				}
+				for _, l := range list {
+					triples = append(triples, rdf.Subject(res.id).Predicate(propId).Literal(l))
+				}
+			case cloudrdf.RdfsClass:
+				list, ok := value.([]string)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a string slice, got a %T", value)
+				}
+				for _, l := range list {
+					triples = append(triples, rdf.Subject(res.id).Predicate(propId).Object(l))
+				}
+			case cloudrdf.NetFirewallRule:
+				list, ok := value.([]*FirewallRule)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a firewall rule slice, got a %T", value)
+				}
+				for _, r := range list {
+					ruleId := randomRdfId()
+					triples = append(triples, rdf.Subject(res.id).Predicate(propId).Object(ruleId))
+					triples = append(triples, r.marshalToTriples(ruleId)...)
+				}
+			case cloudrdf.NetRoute:
+				list, ok := value.([]*Route)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a route slice, got a %T", value)
+				}
+				for _, r := range list {
+					routeId := randomRdfId()
+					triples = append(triples, rdf.Subject(res.id).Predicate(propId).Object(routeId))
+					triples = append(triples, r.marshalToTriples(routeId)...)
+				}
+			case cloudrdf.Grant:
+				list, ok := value.([]*Grant)
+				if !ok {
+					return triples, fmt.Errorf("marshalling property: expected a grant slice, got a %T", value)
+				}
+				for _, g := range list {
+					grantId := randomRdfId()
+					triples = append(triples, rdf.Subject(res.id).Predicate(propId).Object(grantId))
+					triples = append(triples, g.marshalToTriples(grantId)...)
+				}
+			default:
+				return triples, fmt.Errorf("marshalling property: unexpected rdfs:DataType: %s", dataType)
+			}
+
+		default:
+			return triples, fmt.Errorf("marshalling property: unexpected rdfs:isDefinedBy: %s", propType)
+		}
+
+	}
+	return triples, nil
+}
+
+func (res *Resource) unmarshalFullRdf(gph *rdf.Graph) error {
+	triples, err := gph.TriplesForSubjectOnly(rdf.MustBuildNode(res.Id()))
+	if err != nil {
+		return err
+	}
+	if !gph.HasTriple(rdf.Subject(res.Id()).Predicate(cloudrdf.RdfType).Object(strings.Title(res.Type()), cloudrdf.CloudOwlNS)) {
+		return fmt.Errorf("resource with %s has not type %s", res.Id(), res.Type())
+	}
+	for _, t := range triples {
+		pred := string(t.Predicate().ID())
+
+		if !isRDFProperty(pred) || isRDFSubProperty(pred) {
+			continue
+		}
+		propKey, err := getPropertyLabel(pred)
+		if err != nil {
+			return fmt.Errorf("unmarshalling property: label: %s", err)
+		}
+		propVal, err := getPropertyValue(gph, t.Object(), pred)
+		if err != nil {
+			return fmt.Errorf("unmarshalling property: val: %s", err)
+		}
+		if isRDFList(pred) {
+			dataType, err := getPropertyDataType(pred)
+			if err != nil {
+				return fmt.Errorf("unmarshalling property: datatype: %s", err)
+			}
+			switch dataType {
+			case cloudrdf.RdfsClass, cloudrdf.XsdString:
+				list, ok := res.Properties[propKey].([]string)
+				if !ok {
+					list = []string{}
+				}
+				list = append(list, propVal.(string))
+				res.Properties[propKey] = list
+			case cloudrdf.NetFirewallRule:
+				list, ok := res.Properties[propKey].([]*FirewallRule)
+				if !ok {
+					list = []*FirewallRule{}
+				}
+				list = append(list, propVal.(*FirewallRule))
+				res.Properties[propKey] = list
+			case cloudrdf.NetRoute:
+				list, ok := res.Properties[propKey].([]*Route)
+				if !ok {
+					list = []*Route{}
+				}
+				list = append(list, propVal.(*Route))
+				res.Properties[propKey] = list
+			case cloudrdf.Grant:
+				list, ok := res.Properties[propKey].([]*Grant)
+				if !ok {
+					list = []*Grant{}
+				}
+				list = append(list, propVal.(*Grant))
+				res.Properties[propKey] = list
+			default:
+				return fmt.Errorf("unmarshalling property: unexpected datatype %s", dataType)
+			}
+		} else {
+			res.Properties[propKey] = propVal
+		}
+	}
+	return nil
 }
 
 func (res *Resource) marshalRDF() ([]*triple.Triple, error) {
@@ -202,7 +364,7 @@ func (prop *Property) unmarshalRDF(t *triple.Triple) error {
 	case strings.HasSuffix(strings.ToLower(prop.Key), "time"), strings.HasSuffix(strings.ToLower(prop.Key), "date"):
 		t, err := time.Parse(time.RFC3339, fmt.Sprint(prop.Value))
 		if err == nil {
-			prop.Value = t
+			prop.Value = t.UTC()
 		}
 	case strings.HasSuffix(strings.ToLower(prop.Key), "timestamp"):
 		tmstp, err := strconv.Atoi(fmt.Sprint(prop.Value))

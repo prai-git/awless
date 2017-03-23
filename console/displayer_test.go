@@ -228,30 +228,30 @@ func TestMultiResourcesDisplays(t *testing.T) {
 		WithFormat("table"),
 	).SetSource(g).Build()
 
-	expected := `|  TYPE ▲  |  NAME/ID  | PROPERTY  |   VALUE   |
-|----------|-----------|-----------|-----------|
-| instance | apache    | Id        | inst_3    |
-|          |           | Name      | apache    |
-|          |           | State     | running   |
-|          |           | Type      | t2.xlarge |
-|          | django    | Id        | inst_2    |
-|          |           | Name      | django    |
-|          |           | State     | stopped   |
-|          |           | Type      | t2.medium |
-|          | redis     | Id        | inst_1    |
-|          |           | Name      | redis     |
-|          |           | Public IP | 1.2.3.4   |
-|          |           | State     | running   |
-|          |           | Type      | t2.micro  |
-| subnet   | my_subnet | Id        | sub_1     |
-|          |           | Name      | my_subnet |
-|          |           | VpcId     | vpc_1     |
-|          | sub_2     | Id        | sub_2     |
-|          |           | VpcId     | vpc_2     |
-| vpc      | my_vpc_2  | Id        |           |
-|          |           | Name      | my_vpc_2  |
-|          | vpc_1     | Id        | vpc_1     |
-|          |           | NewProp   | my_value  |
+	expected := `|  TYPE ▲  |  NAME/ID  | PROPERTY |   VALUE   |
+|----------|-----------|----------|-----------|
+| instance | apache    | Id       | inst_3    |
+|          |           | Name     | apache    |
+|          |           | State    | running   |
+|          |           | Type     | t2.xlarge |
+|          | django    | Id       | inst_2    |
+|          |           | Name     | django    |
+|          |           | State    | stopped   |
+|          |           | Type     | t2.medium |
+|          | redis     | Id       | inst_1    |
+|          |           | Name     | redis     |
+|          |           | PublicIp | 1.2.3.4   |
+|          |           | State    | running   |
+|          |           | Type     | t2.micro  |
+| subnet   | my_subnet | Id       | sub_1     |
+|          |           | Name     | my_subnet |
+|          |           | VpcId    | vpc_1     |
+|          | sub_2     | Id       | sub_2     |
+|          |           | VpcId    | vpc_2     |
+| vpc      | my_vpc_2  | Id       |           |
+|          |           | Name     | my_vpc_2  |
+|          | vpc_1     | Id       | vpc_1     |
+|          |           | NewProp  | my_value  |
 `
 	var w bytes.Buffer
 	if err := displayer.Print(&w); err != nil {
@@ -550,9 +550,9 @@ func TestFilter(t *testing.T) {
 			WithRdfType("subnet"),
 			WithFormat("json"),
 		).SetSource(g).Build()
-		expected := `[{"Id":"sub_1","MapPublicIpOnLaunch":true,"Name":"my_subnet","VpcId":"vpc_1"},
-		{"Id":"sub_2","MapPublicIpOnLaunch":false,"VpcId":"vpc_2"},
-		{"Id":"sub_3","MapPublicIpOnLaunch":false,"Name":"my_subnet","VpcId":"vpc_1"}]`
+		expected := `[{"Id":"sub_1","Public":true,"Name":"my_subnet","Vpc":"vpc_1"},
+		{"Id":"sub_2","Public":false,"Vpc":"vpc_2"},
+		{"Id":"sub_3","Public":false,"Name":"my_subnet","Vpc":"vpc_1"}]`
 		if err := displayer.Print(&w); err != nil {
 			t.Fatal(err)
 		}
@@ -563,10 +563,10 @@ func TestFilter(t *testing.T) {
 		displayer := BuildOptions(
 			WithRdfType("subnet"),
 			WithFormat("json"),
-			WithFilters([]string{"VpcId=vpc_1"}),
+			WithFilters([]string{"Vpc=vpc_1"}),
 		).SetSource(g).Build()
-		expected := `[{"Id":"sub_1","MapPublicIpOnLaunch":true,"Name":"my_subnet","VpcId":"vpc_1"},
-		{"Id":"sub_3","MapPublicIpOnLaunch":false,"Name":"my_subnet","VpcId":"vpc_1"}]`
+		expected := `[{"Id":"sub_1","Public":true,"Name":"my_subnet","Vpc":"vpc_1"},
+		{"Id":"sub_3","Public":false,"Name":"my_subnet","Vpc":"vpc_1"}]`
 		if err := displayer.Print(&w); err != nil {
 			t.Fatal(err)
 		}
@@ -579,8 +579,8 @@ func TestFilter(t *testing.T) {
 			WithFormat("json"),
 			WithFilters([]string{"public=false"}),
 		).SetSource(g).Build()
-		expected := `[{"Id":"sub_2","MapPublicIpOnLaunch":false,"VpcId":"vpc_2"},
-		{"Id":"sub_3","MapPublicIpOnLaunch":false,"Name":"my_subnet","VpcId":"vpc_1"}]`
+		expected := `[{"Id":"sub_2","Public":false,"Vpc":"vpc_2"},
+		{"Id":"sub_3","Public":false,"Name":"my_subnet","Vpc":"vpc_1"}]`
 		if err := displayer.Print(&w); err != nil {
 			t.Fatal(err)
 		}

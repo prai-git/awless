@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/wallix/awless/cloud"
+	"github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph"
 )
 
@@ -428,7 +429,7 @@ func (s *Queue) fetch_all_queue_graph() (*graph.Graph, []*string, error) {
 		go func(url *string) {
 			defer wg.Done()
 			res := graph.InitResource(awssdk.StringValue(url), cloud.Queue)
-			res.Properties["Id"] = awssdk.StringValue(url)
+			res.Properties[properties.ID] = awssdk.StringValue(url)
 			attrs, err := s.GetQueueAttributes(&sqs.GetQueueAttributesInput{AttributeNames: []*string{awssdk.String("All")}, QueueUrl: url})
 			if e, ok := err.(awserr.RequestFailure); ok && (e.Code() == sqs.ErrCodeQueueDoesNotExist || e.Code() == sqs.ErrCodeQueueDeletedRecently) {
 				return
@@ -438,7 +439,19 @@ func (s *Queue) fetch_all_queue_graph() (*graph.Graph, []*string, error) {
 				return
 			}
 			for k, v := range attrs.Attributes {
-				res.Properties[k] = awssdk.StringValue(v)
+				switch k {
+				case "ApproximateNumberOfMessages":
+					res.Properties[properties.ApproximateMessageCount] = awssdk.StringValue(v)
+				case "CreatedTimestamp":
+					res.Properties[properties.Created] = awssdk.StringValue(v)
+				case "LastModifiedTimestamp":
+					res.Properties[properties.Modified] = awssdk.StringValue(v)
+				case "QueueArn":
+					res.Properties[properties.Arn] = awssdk.StringValue(v)
+				default:
+					res.Properties[k] = awssdk.StringValue(v)
+				}
+
 			}
 			g.AddResource(res)
 		}(output)

@@ -37,6 +37,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/wallix/awless/cloud"
+	"github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph"
 )
 
@@ -124,7 +125,7 @@ func newResource(source interface{}) (*graph.Resource, error) {
 	resultc := make(chan graph.Property)
 	errc := make(chan error)
 	var wg sync.WaitGroup
-	res.Properties["Id"] = res.Id()
+	res.Properties[properties.ID] = res.Id()
 
 	for prop, trans := range awsResourcesDef[res.Type()] {
 		wg.Add(1)
@@ -329,6 +330,9 @@ var extractRoutesSliceFn = func(i interface{}) (interface{}, error) {
 			if _, route.DestinationIPv6, err = net.ParseCIDR(awssdk.StringValue(r.DestinationIpv6CidrBlock)); err != nil {
 				return nil, err
 			}
+		}
+		if notEmpty(r.DestinationPrefixListId) {
+			route.DestinationPrefixListId = awssdk.StringValue(r.DestinationPrefixListId)
 		}
 		if notEmpty(r.EgressOnlyInternetGatewayId) {
 			routeTarget := &graph.RouteTarget{Type: graph.EgressOnlyInternetGatewayTarget, Ref: awssdk.StringValue(r.EgressOnlyInternetGatewayId)}
