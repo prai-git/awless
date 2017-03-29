@@ -60,16 +60,16 @@ func (r *FirewallRule) String() string {
 func (r *FirewallRule) marshalToTriples(id string) []*triple.Triple {
 	var triples []*triple.Triple
 
-	triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetPortRange).Literal(r.PortRange.String()))
-	triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetProtocol).Literal(r.Protocol))
+	triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.PortRange).Literal(r.PortRange.String()))
+	triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.Protocol).Literal(r.Protocol))
 	for _, cidr := range r.IPRanges {
-		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetCidr).Literal(cidr.String()))
+		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.CIDR).Literal(cidr.String()))
 	}
 	return triples
 }
 
 func (r *FirewallRule) unmarshalFromTriples(g *rdf.Graph, node *node.Node) error {
-	portRangeTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.NetPortRange))
+	portRangeTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.PortRange))
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (r *FirewallRule) unmarshalFromTriples(g *rdf.Graph, node *node.Node) error
 	}
 	r.PortRange = pr
 
-	protocolTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.NetProtocol))
+	protocolTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.Protocol))
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (r *FirewallRule) unmarshalFromTriples(g *rdf.Graph, node *node.Node) error
 	}
 	r.Protocol = protocol
 
-	cidrTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.NetCidr))
+	cidrTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.CIDR))
 	for _, cidrT := range cidrTs {
 		lit, err := cidrT.Object().Literal()
 		if err != nil {
@@ -212,10 +212,10 @@ func (r *Route) marshalToTriples(id string) []*triple.Triple {
 	var triples []*triple.Triple
 
 	if r.Destination != nil {
-		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetCidr).Literal(r.Destination.String()))
+		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.CIDR).Literal(r.Destination.String()))
 	}
 	if r.DestinationIPv6 != nil {
-		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetCidrV6).Literal(r.DestinationIPv6.String()))
+		triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.CIDRv6).Literal(r.DestinationIPv6.String()))
 	}
 	triples = append(triples, rdf.Subject(id).Predicate(cloudrdf.NetDestinationPrefixList).Literal(r.DestinationPrefixListId))
 	for _, t := range r.Targets {
@@ -225,7 +225,7 @@ func (r *Route) marshalToTriples(id string) []*triple.Triple {
 }
 
 func (r *Route) unmarshalFromTriples(g *rdf.Graph, node *node.Node) error {
-	routeDestTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.NetCidr))
+	routeDestTs, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.CIDR))
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (r *Route) unmarshalFromTriples(g *rdf.Graph, node *node.Node) error {
 		}
 	}
 
-	routeDestv6Ts, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.NetCidrV6))
+	routeDestv6Ts, err := g.TriplesForSubjectPredicate(node, rdf.MustBuildPredicate(cloudrdf.CIDRv6))
 	if err != nil {
 		return err
 	}

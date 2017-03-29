@@ -19,7 +19,9 @@ package aws
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"sync"
+	"time"
 
 	awssdk "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -223,7 +225,9 @@ func (s *Access) fetch_all_user_graph() (*graph.Graph, []*iam.UserDetail, error)
 					if badResErr != nil {
 						return false
 					}
-					g.AddResource(res)
+					if badResErr = g.AddResource(res); badResErr != nil {
+						return false
+					}
 				}
 				return out.Marker != nil
 			})
@@ -247,7 +251,9 @@ func (s *Access) fetch_all_user_graph() (*graph.Graph, []*iam.UserDetail, error)
 				if badResErr != nil {
 					return false
 				}
-				g.AddResource(res)
+				if badResErr = g.AddResource(res); badResErr != nil {
+					return false
+				}
 			}
 			return page.Marker != nil
 		})
@@ -282,9 +288,11 @@ func (s *Storage) fetch_all_bucket_graph() (*graph.Graph, []*s3.Bucket, error) {
 		buckets = append(buckets, b)
 		bucketM.Unlock()
 		res, err := newResource(b)
-		g.AddResource(res)
 		if err != nil {
 			return fmt.Errorf("build resource for bucket `%s`: %s", awssdk.StringValue(b.Name), err)
+		}
+		if err = g.AddResource(res); err != nil {
+			return err
 		}
 		return nil
 	})
@@ -313,8 +321,10 @@ func (s *Storage) fetchObjectsForBucket(bucket *s3.Bucket, g *graph.Graph) error
 		if err != nil {
 			return err
 		}
-		res.Properties["BucketName"] = awssdk.StringValue(bucket.Name)
-		g.AddResource(res)
+		res.Properties["Bucket"] = awssdk.StringValue(bucket.Name)
+		if err = g.AddResource(res); err != nil {
+			return err
+		}
 		parent, err := initResource(bucket)
 		if err != nil {
 			return err
@@ -443,17 +453,32 @@ func (s *Queue) fetch_all_queue_graph() (*graph.Graph, []*string, error) {
 				case "ApproximateNumberOfMessages":
 					res.Properties[properties.ApproximateMessageCount] = awssdk.StringValue(v)
 				case "CreatedTimestamp":
-					res.Properties[properties.Created] = awssdk.StringValue(v)
+					if vv := awssdk.StringValue(v); vv != "" {
+						timestamp, err := strconv.ParseInt(vv, 10, 64)
+						if err != nil {
+							errc <- err
+						}
+						res.Properties[properties.Created] = time.Unix(int64(timestamp), 0)
+					}
 				case "LastModifiedTimestamp":
-					res.Properties[properties.Modified] = awssdk.StringValue(v)
+					if vv := awssdk.StringValue(v); vv != "" {
+						timestamp, err := strconv.ParseInt(vv, 10, 64)
+						if err != nil {
+							errc <- err
+						}
+						res.Properties[properties.Modified] = time.Unix(int64(timestamp), 0)
+					}
 				case "QueueArn":
 					res.Properties[properties.Arn] = awssdk.StringValue(v)
-				default:
-					res.Properties[k] = awssdk.StringValue(v)
+				case "DelaySeconds":
+					res.Properties[properties.Delay] = awssdk.StringValue(v)
 				}
 
 			}
-			g.AddResource(res)
+			if err = g.AddResource(res); err != nil {
+				errc <- err
+				return
+			}
 		}(output)
 
 	}
@@ -524,7 +549,9 @@ func (s *Infra) fetch_all_listener_graph() (*graph.Graph, []*elbv2.Listener, err
 			if err != nil {
 				return g, cloudResources, err
 			}
-			g.AddResource(res)
+			if err = g.AddResource(res); err != nil {
+				return g, cloudResources, err
+			}
 		}
 	}
 }
@@ -566,7 +593,9 @@ func (s *Dns) fetch_all_record_graph() (*graph.Graph, []*route53.ResourceRecordS
 							if err != nil {
 								errc <- err
 							}
-							g.AddResource(res)
+							if err = g.AddResource(res); err != nil {
+								errc <- err
+							}
 							parent, err := initResource(z)
 							if err != nil {
 								errc <- err

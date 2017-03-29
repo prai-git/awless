@@ -1,16 +1,16 @@
-/subnet<sub_1>  "has_type"@[] "/subnet"^^type:text
-/subnet<sub_1>  "property"@[] "{"Key":"Id","Value":"sub_1"}"^^type:text
-/subnet<sub_1>  "property"@[] "{"Key":"Name","Value":"my_subnet"}"^^type:text
-/subnet<sub_1>  "property"@[] "{"Key":"Vpc","Value":"vpc_1"}"^^type:text
-/subnet<sub_1>  "property"@[] "{"Key":"Public","Value":true}"^^type:text
+/node<sub_1>  "rdf:type"@[] /node<cloud-owl:Subnet>
+/node<sub_1>  "cloud:id"@[] "sub_1"^^type:text
+/node<sub_1>  "cloud:name"@[] "my_subnet"^^type:text
+/node<sub_1>  "cloud:vpc"@[] /node<vpc_1>
+/node<sub_1>  "cloud:public"@[] "true"^^type:text
 
-/subnet<sub_2>  "has_type"@[] "/subnet"^^type:text
-/subnet<sub_2>  "property"@[] "{"Key":"Id","Value":"sub_2"}"^^type:text
-/subnet<sub_2>  "property"@[] "{"Key":"Vpc","Value":"vpc_2"}"^^type:text
-/subnet<sub_2>  "property"@[] "{"Key":"Public","Value":false}"^^type:text
+/node<sub_2>  "rdf:type"@[] /node<cloud-owl:Subnet>
+/node<sub_2>  "cloud:id"@[] "sub_2"^^type:text
+/node<sub_2>  "cloud:vpc"@[] /node<vpc_2>
+/node<sub_2>  "cloud:public"@[] "false"^^type:text
 
-/subnet<sub_3>  "has_type"@[] "/subnet"^^type:text
-/subnet<sub_3>  "property"@[] "{"Key":"Id","Value":"sub_3"}"^^type:text
-/subnet<sub_3>  "property"@[] "{"Key":"Name","Value":"my_subnet"}"^^type:text
-/subnet<sub_3>  "property"@[] "{"Key":"Vpc","Value":"vpc_1"}"^^type:text
-/subnet<sub_3>  "property"@[] "{"Key":"Public","Value":false}"^^type:text
+/node<sub_3>  "rdf:type"@[] /node<cloud-owl:Subnet>
+/node<sub_3>  "cloud:id"@[] "sub_3"^^type:text
+/node<sub_3>  "cloud:name"@[] "my_subnet"^^type:text
+/node<sub_3>  "cloud:vpc"@[] /node<vpc_1>
+/node<sub_3>  "cloud:public"@[] "false"^^type:text

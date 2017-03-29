@@ -6,13 +6,13 @@ func TestAndResolver(t *testing.T) {
 	t.Parallel()
 	g := NewGraph()
 
-	g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Id","Value":"inst_1"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Name","Value":"redis"}"^^type:text
-  /instance<inst_2>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_2>  "property"@[] "{"Key":"Id","Value":"inst_2"}"^^type:text
-  /subnet<sub_1>  "has_type"@[] "/subnet"^^type:text
-  /subnet<sub_1>  "property"@[] "{"Key":"Name","Value":"redis"}"^^type:text`))
+	g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
+  /node<inst_1>  "cloud:name"@[] "redis"^^type:text
+  /node<inst_2>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_2>  "cloud:id"@[] "inst_2"^^type:text
+  /node<sub_1>  "rdf:type"@[] /node<cloud-owl:Subnet>
+  /node<sub_1>  "cloud:name"@[] "redis"^^type:text`))
 
 	resources, err := g.ResolveResources(&And{[]Resolver{
 		&ByType{Typ: "instance"},
@@ -31,7 +31,7 @@ func TestAndResolver(t *testing.T) {
 
 	resources, err = g.ResolveResources(&And{[]Resolver{
 		&ByType{Typ: "subnet"},
-		&ByProperty{Name: "Id", Val: "inst_2"},
+		&ByProperty{Name: "ID", Val: "inst_2"},
 	},
 	})
 	if err != nil {

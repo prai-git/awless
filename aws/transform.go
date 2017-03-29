@@ -294,9 +294,9 @@ var extractTagFn = func(key string) transformFn {
 	}
 }
 
-var extractSliceValues = func(key string) transformFn {
+var extractStringSliceValues = func(key string) transformFn {
 	return func(i interface{}) (interface{}, error) {
-		var res []interface{}
+		var res []string
 		value := reflect.ValueOf(i)
 		if value.Kind() != reflect.Slice {
 			return nil, fmt.Errorf("extract slice: not a slice but a %T", i)
@@ -306,7 +306,11 @@ var extractSliceValues = func(key string) transformFn {
 			if err != nil {
 				return nil, err
 			}
-			res = append(res, e)
+			str, ok := e.(string)
+			if !ok {
+				return nil, fmt.Errorf("extract string slice: not a string but a %T", e)
+			}
+			res = append(res, str)
 		}
 
 		return res, nil

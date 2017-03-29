@@ -48,10 +48,6 @@ var (
 
 	NetFirewallRule = fmt.Sprintf("%s:FirewallRule", netowlNS)
 	NetRoute        = fmt.Sprintf("%s:Route", netowlNS)
-	NetPortRange    = fmt.Sprintf("%s:PortRange", netowlNS)
-	NetProtocol     = fmt.Sprintf("%s:Protocol", netowlNS)
-	NetCidr         = fmt.Sprintf("%s:Cidr", netowlNS)
-	NetCidrV6       = fmt.Sprintf("%s:CidrV6", netowlNS)
 
 	Permission = fmt.Sprintf("%s:permission", CloudNS)
 	Grantee    = fmt.Sprintf("%s:grantee", CloudNS)
@@ -84,6 +80,7 @@ var (
 	CheckProtocol             = fmt.Sprintf("%s:checkProtocol", CloudNS)
 	CheckTimeout              = fmt.Sprintf("%s:checkTimeout", CloudNS)
 	CIDR                      = fmt.Sprintf("%s:cidr", netNS)
+	CIDRv6                    = fmt.Sprintf("%s:cidrv6", netNS)
 	CipherSuite               = fmt.Sprintf("%s:cipherSuite", CloudNS)
 	Class                     = fmt.Sprintf("%s:class", CloudNS)
 	Cluster                   = fmt.Sprintf("%s:cluster", CloudNS)
@@ -137,6 +134,7 @@ var (
 	Path                      = fmt.Sprintf("%s:path", CloudNS)
 	PlacementGroup            = fmt.Sprintf("%s:placementGroup", CloudNS)
 	Port                      = fmt.Sprintf("%s:port", netNS)
+	PortRange                 = fmt.Sprintf("%s:portRange", netNS)
 	PreferredBackupDate       = fmt.Sprintf("%s:preferredBackupDate", CloudNS)
 	PreferredMaintenanceDate  = fmt.Sprintf("%s:preferredMaintenanceDate", CloudNS)
 	Private                   = fmt.Sprintf("%s:private", CloudNS)
@@ -146,8 +144,8 @@ var (
 	Public                    = fmt.Sprintf("%s:public", CloudNS)
 	PublicDNS                 = fmt.Sprintf("%s:publicDNS", CloudNS)
 	PublicIP                  = fmt.Sprintf("%s:publicIP", netNS)
-	Records                   = fmt.Sprintf("%s:records", CloudNS)
 	RecordCount               = fmt.Sprintf("%s:recordCount", CloudNS)
+	Records                   = fmt.Sprintf("%s:records", CloudNS)
 	Region                    = fmt.Sprintf("%s:region", CloudNS)
 	RootDevice                = fmt.Sprintf("%s:rootDevice", CloudNS)
 	RootDeviceType            = fmt.Sprintf("%s:rootDeviceType", CloudNS)
@@ -314,7 +312,7 @@ var RdfProperties = map[string]rdfProp{
 	CheckHTTPCode:           {ID: CheckHTTPCode, RdfType: RdfProperty, RdfsLabel: properties.CheckHTTPCode, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	CheckInterval:           {ID: CheckInterval, RdfType: RdfProperty, RdfsLabel: properties.CheckInterval, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdInt},
 	CheckPath:               {ID: CheckPath, RdfType: RdfProperty, RdfsLabel: properties.CheckPath, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
-	CheckPort:               {ID: CheckPort, RdfType: RdfProperty, RdfsLabel: properties.CheckPort, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdInt},
+	CheckPort:               {ID: CheckPort, RdfType: RdfProperty, RdfsLabel: properties.CheckPort, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	CheckProtocol:           {ID: CheckProtocol, RdfType: RdfProperty, RdfsLabel: properties.CheckProtocol, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	CheckTimeout:            {ID: CheckTimeout, RdfType: RdfProperty, RdfsLabel: properties.CheckTimeout, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdInt},
 	CIDR:                    {ID: CIDR, RdfType: RdfProperty, RdfsLabel: properties.CIDR, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
@@ -355,7 +353,7 @@ var RdfProperties = map[string]rdfProp{
 	License:                  {ID: License, RdfType: RdfProperty, RdfsLabel: properties.License, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	Lifecycle:                {ID: Lifecycle, RdfType: RdfProperty, RdfsLabel: properties.Lifecycle, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	LoadBalancer:             {ID: LoadBalancer, RdfType: RdfProperty, RdfsLabel: properties.LoadBalancer, RdfsDefinedBy: RdfsClass, RdfsDataType: XsdString},
-	Main:                     {ID: Main, RdfType: RdfProperty, RdfsLabel: properties.Main, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
+	Main:                     {ID: Main, RdfType: RdfProperty, RdfsLabel: properties.Main, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdBoolean},
 	Messages:                 {ID: Messages, RdfType: RdfProperty, RdfsLabel: properties.Messages, RdfsDefinedBy: RdfsList, RdfsDataType: XsdString},
 	Modified:                 {ID: Modified, RdfType: RdfProperty, RdfsLabel: properties.Modified, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdDateTime},
 	MonitoringInterval:       {ID: MonitoringInterval, RdfType: RdfProperty, RdfsLabel: properties.MonitoringInterval, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
@@ -377,7 +375,7 @@ var RdfProperties = map[string]rdfProp{
 	PrivateIP:                {ID: PrivateIP, RdfType: RdfProperty, RdfsLabel: properties.PrivateIP, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	Profile:                  {ID: Profile, RdfType: RdfProperty, RdfsLabel: properties.Profile, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	Protocol:                 {ID: Protocol, RdfType: RdfProperty, RdfsLabel: properties.Protocol, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
-	Public:                   {ID: Public, RdfType: RdfProperty, RdfsLabel: properties.Public, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
+	Public:                   {ID: Public, RdfType: RdfProperty, RdfsLabel: properties.Public, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdBoolean},
 	PublicDNS:                {ID: PublicDNS, RdfType: RdfProperty, RdfsLabel: properties.PublicDNS, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	PublicIP:                 {ID: PublicIP, RdfType: RdfProperty, RdfsLabel: properties.PublicIP, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 	Records:                  {ID: Records, RdfType: RdfProperty, RdfsLabel: properties.Records, RdfsDefinedBy: RdfsList, RdfsDataType: RdfsClass},
@@ -412,5 +410,5 @@ var RdfProperties = map[string]rdfProp{
 	Zone:                    {ID: Zone, RdfType: RdfProperty, RdfsLabel: properties.Zone, RdfsDefinedBy: RdfsClass, RdfsDataType: XsdString},
 
 	//Subproperties
-	NetPortRange: {ID: NetPortRange, RdfType: RdfsSubProperty, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
+	PortRange: {ID: PortRange, RdfType: RdfsSubProperty, RdfsDefinedBy: RdfsLiteral, RdfsDataType: XsdString},
 }

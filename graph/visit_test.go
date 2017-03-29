@@ -32,6 +32,10 @@ func TestCollectors(t *testing.T) {
 	s2 := graph.InitResource("sub_2", "subnet")
 	v1 := graph.InitResource("vpc_1", "vpc")
 	v2 := graph.InitResource("vpc_2", "vpc")
+	err := g.AddResource(i1, i2, i3, s1, s2, v1, v2)
+	if err != nil {
+		t.Fatal(err)
+	}
 	g.AddParentRelation(s1, i1)
 	g.AddParentRelation(s1, i2)
 	g.AddParentRelation(s2, i3)

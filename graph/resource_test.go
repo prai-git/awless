@@ -17,6 +17,7 @@ limitations under the License.
 package graph
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -26,6 +27,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/badwolf/triple"
+	"github.com/google/badwolf/triple/literal"
 	"github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph/internal/rdf"
 )
@@ -251,6 +254,7 @@ func TestMarshalUnmarshalGrants(t *testing.T) {
 		"Grants", []*Grant{
 			{Permission: "denied"},
 			{Permission: "granted", GranteeID: "123", GranteeDisplayName: "John Smith", GranteeType: "user"},
+			{Permission: "other", GranteeID: "myid"},
 		}).build()
 	g := rdf.NewGraph()
 	triples, err := r.marshalFullRDF()
@@ -384,4 +388,61 @@ func BenchmarkRdfUnmarshaling(b *testing.B) {
 			}
 		}
 	})
+}
+
+func (res *Resource) marshalRDF() ([]*triple.Triple, error) {
+	var triples []*triple.Triple
+	n, err := res.toRDFNode()
+	if err != nil {
+		return triples, err
+	}
+	var lit *literal.Literal
+	if lit, err = literal.DefaultBuilder().Build(literal.Text, "/"+res.kind); err != nil {
+		return triples, err
+	}
+	t, err := triple.New(n, rdf.HasTypePredicate, triple.NewLiteralObject(lit))
+	if err != nil {
+		return triples, err
+	}
+	triples = append(triples, t)
+
+	for propKey, propValue := range res.Properties {
+		prop := Property{Key: propKey, Value: propValue}
+		propL, err := prop.marshalRDF()
+		if err != nil {
+			return nil, err
+		}
+		if propT, err := triple.New(n, rdf.PropertyPredicate, propL); err != nil {
+			return nil, err
+		} else {
+			triples = append(triples, propT)
+		}
+	}
+
+	for metaKey, metaValue := range res.Meta {
+		prop := Property{Key: metaKey, Value: metaValue}
+		propL, err := prop.marshalRDF()
+		if err != nil {
+			return nil, err
+		}
+		if propT, err := triple.New(n, rdf.MetaPredicate, propL); err != nil {
+			return nil, err
+		} else {
+			triples = append(triples, propT)
+		}
+	}
+
+	return triples, nil
+}
+
+func (prop *Property) marshalRDF() (*triple.Object, error) {
+	json, err := json.Marshal(prop)
+	if err != nil {
+		return nil, err
+	}
+	var propL *literal.Literal
+	if propL, err = literal.DefaultBuilder().Build(literal.Text, string(json)); err != nil {
+		return nil, err
+	}
+	return triple.NewLiteralObject(propL), nil
 }

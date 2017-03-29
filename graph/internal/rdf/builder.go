@@ -32,7 +32,11 @@ func (b *tripleBuilder) Literal(s string) *triple.Triple {
 }
 
 func (b *tripleBuilder) Object(s string, ns ...string) *triple.Triple {
-	t, err := triple.New(b.sub, b.pred, triple.NewNodeObject(MustBuildNode(addNs(s, ns...))))
+	return b.ObjectNode(triple.NewNodeObject(MustBuildNode(addNs(s, ns...))))
+}
+
+func (b *tripleBuilder) ObjectNode(obj *triple.Object) *triple.Triple {
+	t, err := triple.New(b.sub, b.pred, obj)
 	if err != nil {
 		panic(err)
 	}
@@ -65,6 +69,9 @@ func MustBuildLiteral(str string) *literal.Literal {
 
 func TrimNS(s string) string {
 	spl := strings.Split(s, ":")
+	if len(spl) == 0 {
+		return s
+	}
 	return spl[len(spl)-1]
 }
 

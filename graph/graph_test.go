@@ -22,13 +22,15 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/wallix/awless/cloud/properties"
 )
 
 func TestAddGraphRelation(t *testing.T) {
 
 	t.Run("Add parent", func(t *testing.T) {
 		g := NewGraph()
-		g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text`))
+		g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>`))
 
 		res, err := g.GetResource("instance", "inst_1")
 		if err != nil {
@@ -36,8 +38,8 @@ func TestAddGraphRelation(t *testing.T) {
 		}
 		g.AddParentRelation(InitResource("subnet_1", "subnet"), res)
 
-		exp := `/instance<inst_1>	"has_type"@[]	"/instance"^^type:text
-/subnet<subnet_1>	"parent_of"@[]	/instance<inst_1>`
+		exp := `/node<inst_1>	"rdf:type"@[]	/node<cloud-owl:Instance>
+/node<subnet_1>	"parent_of"@[]	/node<inst_1>`
 
 		if got, want := g.MustMarshal(), exp; got != want {
 			t.Fatalf("got\n%q\nwant\n%q\n", got, want)
@@ -46,7 +48,7 @@ func TestAddGraphRelation(t *testing.T) {
 
 	t.Run("Add applies on", func(t *testing.T) {
 		g := NewGraph()
-		g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text`))
+		g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>`))
 
 		res, err := g.GetResource("instance", "inst_1")
 		if err != nil {
@@ -54,8 +56,8 @@ func TestAddGraphRelation(t *testing.T) {
 		}
 		g.AddAppliesOnRelation(InitResource("subnet_1", "subnet"), res)
 
-		exp := `/instance<inst_1>	"has_type"@[]	"/instance"^^type:text
-/subnet<subnet_1>	"applies_on"@[]	/instance<inst_1>`
+		exp := `/node<inst_1>	"rdf:type"@[]	/node<cloud-owl:Instance>
+/node<subnet_1>	"applies_on"@[]	/node<inst_1>`
 
 		if got, want := g.MustMarshal(), exp; got != want {
 			t.Fatalf("got\n%q\nwant\n%q\n", got, want)
@@ -66,23 +68,21 @@ func TestAddGraphRelation(t *testing.T) {
 func TestGetResource(t *testing.T) {
 	g := NewGraph()
 
-	g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Id","Value":"inst_1"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Tags","Value":[{"Key":"Name","Value":"redis"}]}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Type","Value":"t2.micro"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"PublicIp","Value":"1.2.3.4"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"State","Value":{"Code": 16,"Name":"running"}}"^^type:text`))
+	g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
+  /node<inst_1>  "cloud:name"@[] "redis"^^type:text
+  /node<inst_1>  "cloud:type"@[] "t2.micro"^^type:text
+  /node<inst_1>  "net:publicIP"@[] "1.2.3.4"^^type:text
+  /node<inst_1>  "cloud:state"@[] "running"^^type:text`))
 
 	res, err := g.GetResource("instance", "inst_1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expected := Properties{"Id": "inst_1", "Type": "t2.micro", "PublicIp": "1.2.3.4",
-		"State": map[string]interface{}{"Code": float64(16), "Name": "running"},
-		"Tags": []interface{}{
-			map[string]interface{}{"Key": "Name", "Value": "redis"},
-		},
+	expected := Properties{properties.ID: "inst_1", properties.Type: "t2.micro", properties.PublicIP: "1.2.3.4",
+		properties.State: "running",
+		properties.Name:  "redis",
 	}
 
 	if got, want := res.Properties, expected; !reflect.DeepEqual(got, want) {
@@ -94,13 +94,14 @@ func TestFindResources(t *testing.T) {
 	t.Parallel()
 	g := NewGraph()
 
-	g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Id","Value":"inst_1"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Name","Value":"redis"}"^^type:text
-  /instance<inst_2>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_2>  "property"@[] "{"Key":"Id","Value":"inst_2"}"^^type:text
-  /subnet<sub_1>  "has_type"@[] "/subnet"^^type:text
-  /subnet<sub_1>  "property"@[] "{"Key":"Name","Value":"redis"}"^^type:text`))
+	g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
+  /node<inst_1>  "cloud:name"@[] "redis"^^type:text
+  /node<inst_2>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_2>  "cloud:id"@[] "inst_2"^^type:text
+  /node<sub_1>  "rdf:type"@[] /node<cloud-owl:Subnet>
+  /node<sub_1>  "cloud:id"@[] "sub_1"^^type:text
+  /node<sub_1>  "cloud:name"@[] "redis"^^type:text`))
 
 	t.Run("FindResource", func(t *testing.T) {
 		t.Parallel()
@@ -128,12 +129,12 @@ func TestFindResources(t *testing.T) {
 	})
 	t.Run("FindResourcesByProperty", func(t *testing.T) {
 		t.Parallel()
-		res, err := g.FindResourcesByProperty("Id", "inst_1")
+		res, err := g.FindResourcesByProperty("ID", "inst_1")
 		if err != nil {
 			t.Fatal(err)
 		}
 		expected := []*Resource{
-			{id: "inst_1", kind: "instance", Properties: map[string]interface{}{"Id": interface{}("inst_1"), "Name": interface{}("redis")}, Meta: make(Properties)},
+			{id: "inst_1", kind: "instance", Properties: map[string]interface{}{"ID": interface{}("inst_1"), "Name": interface{}("redis")}, Meta: make(Properties)},
 		}
 		if got, want := len(res), len(expected); got != want {
 			t.Fatalf("got %d want %d", got, want)
@@ -146,8 +147,8 @@ func TestFindResources(t *testing.T) {
 			t.Fatal(err)
 		}
 		expected = []*Resource{
-			{id: "inst_1", kind: "instance", Properties: map[string]interface{}{"Id": "inst_1", "Name": "redis"}, Meta: make(Properties)},
-			{id: "sub_1", kind: "subnet", Properties: map[string]interface{}{"Name": "redis"}, Meta: make(Properties)},
+			{id: "inst_1", kind: "instance", Properties: map[string]interface{}{"ID": "inst_1", "Name": "redis"}, Meta: make(Properties)},
+			{id: "sub_1", kind: "subnet", Properties: map[string]interface{}{"ID": "sub_1", "Name": "redis"}, Meta: make(Properties)},
 		}
 		if got, want := len(res), len(expected); got != want {
 			t.Fatalf("got %d want %d", got, want)
@@ -173,25 +174,25 @@ func TestFindResources(t *testing.T) {
 func TestGetAllResources(t *testing.T) {
 	g := NewGraph()
 
-	g.Unmarshal([]byte(`/instance<inst_1>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Id","Value":"inst_1"}"^^type:text
-  /instance<inst_1>  "property"@[] "{"Key":"Name","Value":"redis"}"^^type:text
-  /instance<inst_2>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_2>  "property"@[] "{"Key":"Id","Value":"inst_2"}"^^type:text
-  /instance<inst_2>  "property"@[] "{"Key":"Name","Value":"redis2"}"^^type:text
-  /instance<inst_3>  "has_type"@[] "/instance"^^type:text
-  /instance<inst_3>  "property"@[] "{"Key":"Id","Value":"inst_3"}"^^type:text
-  /instance<inst_3>  "property"@[] "{"Key":"Name","Value":"redis3"}"^^type:text
-  /instance<inst_3>  "property"@[] "{"Key":"CreationDate","Value":"2017-01-10T16:47:18Z"}"^^type:text
-  /instance<subnet>  "has_type"@[] "/subnet"^^type:text
-  /instance<subnet>  "property"@[] "{"Key":"Id","Value":"my subnet"}"^^type:text`))
+	g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
+  /node<inst_1>  "cloud:name"@[] "redis"^^type:text
+  /node<inst_2>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_2>  "cloud:id"@[] "inst_2"^^type:text
+  /node<inst_2>  "cloud:name"@[] "redis2"^^type:text
+  /node<inst_3>  "rdf:type"@[] /node<cloud-owl:Instance>
+  /node<inst_3>  "cloud:id"@[] "inst_3"^^type:text
+  /node<inst_3>  "cloud:name"@[] "redis3"^^type:text
+  /node<inst_3>  "cloud:created"@[] "2017-01-10T16:47:18Z"^^type:text
+  /node<subnet>  "rdf:type"@[] /node<cloud-owl:Subnet>
+  /node<subnet>  "cloud:id"@[] "my subnet"^^type:text`))
 
 	time, _ := time.Parse(time.RFC3339, "2017-01-10T16:47:18Z")
 
 	expected := []*Resource{
-		{kind: "instance", id: "inst_1", Properties: Properties{"Id": "inst_1", "Name": "redis"}},
-		{kind: "instance", id: "inst_2", Properties: Properties{"Id": "inst_2", "Name": "redis2"}},
-		{kind: "instance", id: "inst_3", Properties: Properties{"Id": "inst_3", "Name": "redis3", "CreationDate": time}},
+		{kind: "instance", id: "inst_1", Properties: Properties{properties.ID: "inst_1", "Name": "redis"}},
+		{kind: "instance", id: "inst_2", Properties: Properties{properties.ID: "inst_2", "Name": "redis2"}},
+		{kind: "instance", id: "inst_3", Properties: Properties{properties.ID: "inst_3", "Name": "redis3", "Created": time}},
 	}
 	res, err := g.GetAllResources("instance")
 	if err != nil {
@@ -215,13 +216,23 @@ func TestGetAllResources(t *testing.T) {
 
 func TestLoadIpPermissions(t *testing.T) {
 	g := NewGraph()
-	g.Unmarshal([]byte(`/securitygroup<sg-1234>	"has_type"@[]	"/securitygroup"^^type:text
-/securitygroup<sg-1234>	"property"@[]	"{"Key":"Id","Value":"sg-1234"}"^^type:text
-/securitygroup<sg-1234>	"property"@[]	"{"Key":"InboundRules","Value":[{"PortRange":{"FromPort":22,"ToPort":22,"Any":false},"Protocol":"tcp","IPRanges":[{"IP":"10.10.0.0","Mask":"//8AAA=="}]},{"PortRange":{"FromPort":443,"ToPort":443,"Any":false},"Protocol":"tcp","IPRanges":[{"IP":"0.0.0.0","Mask":"AAAAAA=="}]}]}"^^type:text
-/securitygroup<sg-1234>	"property"@[]	"{"Key":"OutboundRules","Value":[{"PortRange":{"FromPort":0,"ToPort":0,"Any":true},"Protocol":"any","IPRanges":[{"IP":"0.0.0.0","Mask":"AAAAAA=="}]}]}"^^type:text`))
+	g.Unmarshal([]byte(`/node<sg-1234>	"rdf:type"@[]	/node<cloud-owl:Securitygroup>
+/node<sg-1234>	"cloud:id"@[]	"sg-1234"^^type:text
+/node<sg-1234>	"net:inboundRules"@[]	/node<d04ab55f>
+/node<d04ab55f>	"net:portRange"@[]	"22:22"^^type:text
+/node<d04ab55f>	"net:protocol"@[]	"tcp"^^type:text
+/node<d04ab55f>	"net:cidr"@[]	"10.10.0.0/16"^^type:text
+/node<sg-1234>	"net:inboundRules"@[]	/node<36d9ff45>
+/node<36d9ff45>	"net:portRange"@[]	"443:443"^^type:text
+/node<36d9ff45>	"net:protocol"@[]	"tcp"^^type:text
+/node<36d9ff45>	"net:cidr"@[]	"0.0.0.0/0"^^type:text
+/node<sg-1234>	"net:outboundRules"@[]	/node<6172bfe3>
+/node<6172bfe3>	"net:portRange"@[]	":"^^type:text
+/node<6172bfe3>	"net:protocol"@[]	"any"^^type:text
+/node<6172bfe3>	"net:cidr"@[]	"0.0.0.0/0"^^type:text`))
 	expected := []*Resource{
 		{kind: "securitygroup", id: "sg-1234", Properties: Properties{
-			"Id": "sg-1234",
+			"ID": "sg-1234",
 			"InboundRules": []*FirewallRule{
 				{
 					PortRange: PortRange{FromPort: int64(22), ToPort: int64(22), Any: false},

@@ -13,11 +13,11 @@ func TestValidation(t *testing.T) {
 
 		g := graph.NewGraph()
 		g.Unmarshal([]byte(`
-      /instance<inst_1> "has_type"@[] "/instance"^^type:text
-      /instance<inst_1> "property"@[] "{"Key":"Name","Value":"instance1_name"}"^^type:text
-      /instance<inst_2> "has_type"@[] "/instance"^^type:text
-      /instance<inst_2> "property"@[] "{"Key":"Id","Value":"inst_2"}"^^type:text
-      /instance<inst_2> "property"@[] "{"Key":"Name","Value":"instance2_name"}"^^type:text
+      /node<inst_1> "rdf:type"@[] /node<cloud-owl:Instance>
+      /node<inst_1> "cloud:name"@[] "instance1_name"^^type:text
+      /node<inst_2> "rdf:type"@[] /node<cloud-owl:Instance>
+      /node<inst_2> "cloud:id"@[] "inst_2"^^type:text
+      /node<inst_2> "cloud:name"@[] "instance2_name"^^type:text
     `))
 
 		tpl := template.MustParse(text)
