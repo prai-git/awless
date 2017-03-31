@@ -20,9 +20,12 @@ import (
 	"bytes"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/fatih/color"
+	p "github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph"
+	"github.com/wallix/awless/graph/resourcetest"
 )
 
 func init() {
@@ -363,24 +366,15 @@ func TestDiffDisplay(t *testing.T) {
 }
 
 func TestDateLists(t *testing.T) {
-	users := []byte(`/node<eu-west-1>	"rdf:type"@[]	/node<cloud-owl:Region>
-/node<eu-west-1>	"parent_of"@[]	/node<user1>
-/node<eu-west-1>	"parent_of"@[]	/node<user2>
-/node<eu-west-1>	"parent_of"@[]	/node<user3>
-/node<user1>	"rdf:type"@[]	/node<cloud-owl:User>
-/node<user2>	"rdf:type"@[]	/node<cloud-owl:User>
-/node<user3>	"rdf:type"@[]	/node<cloud-owl:User>
-/node<user1>	"cloud:id"@[] "user1"^^type:text
-/node<user2>	"cloud:id"@[] "user2"^^type:text
-/node<user3>	"cloud:id"@[] "user3"^^type:text
-/node<user1>	"cloud:name"@[] "my_username_1"^^type:text
-/node<user2>	"cloud:name"@[] "my_username_2"^^type:text
-/node<user3>	"cloud:name"@[] "my_username_3"^^type:text
-/node<user2>	"cloud:passwordLastUsed"@[] "2016-12-22T11:13:23Z"^^type:text
-/node<user3>	"cloud:passwordLastUsed"@[] "2016-12-10T08:35:37Z"^^type:text`)
-
 	g := graph.NewGraph()
-	g.Unmarshal(users)
+	r := resourcetest.New("eu-west-1", "region").Build()
+	user1 := resourcetest.User("user1").Prop("Name", "my_username_1").Build()
+	user2 := resourcetest.User("user2").Prop("Name", "my_username_2").Prop("PasswordLastUsed", time.Unix(1482405203, 0).UTC()).Build()
+	user3 := resourcetest.User("user3").Prop("Name", "my_username_3").Prop("PasswordLastUsed", time.Unix(1481358937, 0).UTC()).Build()
+	g.AddResource(r, user1, user2, user3)
+	g.AddParentRelation(r, user1)
+	g.AddParentRelation(r, user2)
+	g.AddParentRelation(r, user3)
 
 	headers := []ColumnDefinition{
 		StringColumnDefinition{Prop: "ID"},
@@ -553,10 +547,12 @@ Columns truncated to fit terminal: 'T', 'P'
 }
 
 func TestFilter(t *testing.T) {
-	g, err := graph.NewGraphFromFile(filepath.Join("testdata", "subnets.rdf"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	g := graph.NewGraph()
+	g.AddResource(
+		resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Prop(p.Public, true).Build(),
+		resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Prop(p.Public, false).Build(),
+		resourcetest.Subnet("sub_3").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Prop(p.Public, false).Build(),
+	)
 
 	t.Run("No filter", func(t *testing.T) {
 		var w bytes.Buffer
@@ -627,10 +623,23 @@ func TestCompareInterface(t *testing.T) {
 }
 
 func createInfraGraph() *graph.Graph {
-	g, err := graph.NewGraphFromFile(filepath.Join("testdata", "infra.rdf"))
-	if err != nil {
-		panic(err)
-	}
+	r := resourcetest.New("eu-west-1", "region").Build()
+	inst1 := resourcetest.Instance("inst_1").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.PublicIP, "1.2.3.4").Prop(p.State, "running").Build()
+	inst2 := resourcetest.Instance("inst_2").Prop(p.Name, "django").Prop(p.Type, "t2.medium").Prop(p.State, "stopped").Build()
+	inst3 := resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build()
+	vpc1 := resourcetest.VPC("vpc_1").Build()
+	vpc2 := resourcetest.VPC("vpc_2").Prop(p.Name, "my_vpc_2").Build()
+	sub1 := resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Build()
+	sub2 := resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Build()
+	g := graph.NewGraph()
+	g.AddResource(r, inst1, inst2, inst3, vpc1, vpc2, sub1, sub2)
+	g.AddParentRelation(r, vpc1)
+	g.AddParentRelation(r, vpc2)
+	g.AddParentRelation(sub1, inst1)
+	g.AddParentRelation(sub2, inst2)
+	g.AddParentRelation(sub2, inst3)
+	g.AddParentRelation(vpc1, sub1)
+	g.AddParentRelation(vpc2, sub2)
 
 	return g
 }

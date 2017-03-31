@@ -32,6 +32,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	p "github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph"
+	"github.com/wallix/awless/graph/resourcetest"
 )
 
 func TestBuildAccessRdfGraph(t *testing.T) {
@@ -170,28 +171,28 @@ func TestBuildAccessRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"managed_policy_1": polRes("managed_policy_1").prop(p.Name, "nmanaged_policy_1").build(),
-		"managed_policy_2": polRes("managed_policy_2").prop(p.Name, "nmanaged_policy_2").build(),
-		"managed_policy_3": polRes("managed_policy_3").prop(p.Name, "nmanaged_policy_3").build(),
-		"group_1":          grpRes("group_1").prop(p.Name, "ngroup_1").prop(p.InlinePolicies, []string{"npolicy_1"}).build(),
-		"group_2":          grpRes("group_2").prop(p.Name, "ngroup_2").prop(p.InlinePolicies, []string{"npolicy_1"}).build(),
-		"group_3":          grpRes("group_3").prop(p.Name, "ngroup_3").prop(p.InlinePolicies, []string{"npolicy_2"}).build(),
-		"group_4":          grpRes("group_4").prop(p.Name, "ngroup_4").prop(p.InlinePolicies, []string{"npolicy_4"}).build(),
-		"role_1":           rolRes("role_1").prop(p.InlinePolicies, []string{"npolicy_1"}).build(),
-		"role_2":           rolRes("role_2").prop(p.InlinePolicies, []string{"npolicy_1"}).build(),
-		"role_3":           rolRes("role_3").prop(p.InlinePolicies, []string{"npolicy_2"}).build(),
-		"role_4":           rolRes("role_4").prop(p.InlinePolicies, []string{"npolicy_4"}).build(),
-		"usr_1":            usrRes("usr_1").prop(p.InlinePolicies, []string{"npolicy_1", "npolicy_2"}).prop(p.PasswordLastUsed, time.Unix(1486139077, 0).UTC()).build(),
-		"usr_2":            usrRes("usr_2").prop(p.InlinePolicies, []string{"npolicy_1"}).build(),
-		"usr_3":            usrRes("usr_3").prop(p.InlinePolicies, []string{"npolicy_1", "npolicy_4"}).build(),
-		"usr_4":            usrRes("usr_4").prop(p.InlinePolicies, []string{"npolicy_2"}).build(),
-		"usr_5":            usrRes("usr_5").prop(p.InlinePolicies, []string{"npolicy_2"}).build(),
-		"usr_6":            usrRes("usr_6").prop(p.InlinePolicies, []string{"npolicy_2"}).build(),
-		"usr_7":            usrRes("usr_7").prop(p.InlinePolicies, []string{"npolicy_2", "npolicy_4"}).build(),
-		"usr_8":            usrRes("usr_8").prop(p.InlinePolicies, []string{"npolicy_4"}).build(),
-		"usr_9":            usrRes("usr_9").prop(p.InlinePolicies, []string{"npolicy_4"}).build(),
-		"usr_10":           usrRes("usr_10").build(),
-		"usr_11":           usrRes("usr_11").build(),
+		"managed_policy_1": resourcetest.Policy("managed_policy_1").Prop(p.Name, "nmanaged_policy_1").Build(),
+		"managed_policy_2": resourcetest.Policy("managed_policy_2").Prop(p.Name, "nmanaged_policy_2").Build(),
+		"managed_policy_3": resourcetest.Policy("managed_policy_3").Prop(p.Name, "nmanaged_policy_3").Build(),
+		"group_1":          resourcetest.Group("group_1").Prop(p.Name, "ngroup_1").Prop(p.InlinePolicies, []string{"npolicy_1"}).Build(),
+		"group_2":          resourcetest.Group("group_2").Prop(p.Name, "ngroup_2").Prop(p.InlinePolicies, []string{"npolicy_1"}).Build(),
+		"group_3":          resourcetest.Group("group_3").Prop(p.Name, "ngroup_3").Prop(p.InlinePolicies, []string{"npolicy_2"}).Build(),
+		"group_4":          resourcetest.Group("group_4").Prop(p.Name, "ngroup_4").Prop(p.InlinePolicies, []string{"npolicy_4"}).Build(),
+		"role_1":           resourcetest.Role("role_1").Prop(p.InlinePolicies, []string{"npolicy_1"}).Build(),
+		"role_2":           resourcetest.Role("role_2").Prop(p.InlinePolicies, []string{"npolicy_1"}).Build(),
+		"role_3":           resourcetest.Role("role_3").Prop(p.InlinePolicies, []string{"npolicy_2"}).Build(),
+		"role_4":           resourcetest.Role("role_4").Prop(p.InlinePolicies, []string{"npolicy_4"}).Build(),
+		"usr_1":            resourcetest.User("usr_1").Prop(p.InlinePolicies, []string{"npolicy_1", "npolicy_2"}).Prop(p.PasswordLastUsed, time.Unix(1486139077, 0).UTC()).Build(),
+		"usr_2":            resourcetest.User("usr_2").Prop(p.InlinePolicies, []string{"npolicy_1"}).Build(),
+		"usr_3":            resourcetest.User("usr_3").Prop(p.InlinePolicies, []string{"npolicy_1", "npolicy_4"}).Build(),
+		"usr_4":            resourcetest.User("usr_4").Prop(p.InlinePolicies, []string{"npolicy_2"}).Build(),
+		"usr_5":            resourcetest.User("usr_5").Prop(p.InlinePolicies, []string{"npolicy_2"}).Build(),
+		"usr_6":            resourcetest.User("usr_6").Prop(p.InlinePolicies, []string{"npolicy_2"}).Build(),
+		"usr_7":            resourcetest.User("usr_7").Prop(p.InlinePolicies, []string{"npolicy_2", "npolicy_4"}).Build(),
+		"usr_8":            resourcetest.User("usr_8").Prop(p.InlinePolicies, []string{"npolicy_4"}).Build(),
+		"usr_9":            resourcetest.User("usr_9").Prop(p.InlinePolicies, []string{"npolicy_4"}).Build(),
+		"usr_10":           resourcetest.User("usr_10").Build(),
+		"usr_11":           resourcetest.User("usr_11").Build(),
 	}
 
 	expectedChildren := map[string][]string{}
@@ -295,32 +296,32 @@ func TestBuildInfraRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"eu-west-1":   testRes("eu-west-1", "region").build(),
-		"inst_1":      instRes("inst_1").prop(p.Subnet, "sub_1").prop(p.Vpc, "vpc_1").prop(p.Name, "instance1-name").build(),
-		"inst_2":      instRes("inst_2").prop(p.Subnet, "sub_2").prop(p.Vpc, "vpc_1").prop(p.SecurityGroups, []string{"secgroup_1"}).build(),
-		"inst_3":      instRes("inst_3").prop(p.Subnet, "sub_3").prop(p.Vpc, "vpc_2").build(),
-		"inst_4":      instRes("inst_4").prop(p.Subnet, "sub_3").prop(p.Vpc, "vpc_2").prop(p.SecurityGroups, []string{"secgroup_1", "secgroup_2"}).prop(p.SSHKey, "my_key_pair").build(),
-		"inst_5":      instRes("inst_5").build(),
-		"vpc_1":       vpcRes("vpc_1").build(),
-		"vpc_2":       vpcRes("vpc_2").build(),
-		"secgroup_1":  sGrpRes("secgroup_1").prop(p.Name, "my_secgroup").prop(p.Vpc, "vpc_1").build(),
-		"secgroup_2":  sGrpRes("secgroup_2").prop(p.Vpc, "vpc_1").build(),
-		"sub_1":       subRes("sub_1").prop(p.Vpc, "vpc_1").build(),
-		"sub_2":       subRes("sub_2").prop(p.Vpc, "vpc_1").build(),
-		"sub_3":       subRes("sub_3").prop(p.Vpc, "vpc_2").build(),
-		"sub_4":       subRes("sub_4").build(),
-		"my_key_pair": keyRes("my_key_pair").build(),
-		"igw_1":       igwRes("igw_1").prop(p.Vpcs, []string{"vpc_2"}).build(),
-		"rt_1":        rtRes("rt_1").prop(p.Vpc, "vpc_1").prop(p.Main, false).build(),
-		"lb_1":        lbRes("lb_1").prop(p.Name, "my_loadbalancer").prop(p.Vpc, "vpc_1").build(),
-		"lb_2":        lbRes("lb_2").prop(p.Vpc, "vpc_2").build(),
-		"lb_3":        lbRes("lb_3").prop(p.Vpc, "vpc_1").build(),
-		"tg_1":        tgRes("tg_1").prop(p.Vpc, "vpc_1").build(),
-		"tg_2":        tgRes("tg_2").prop(p.Vpc, "vpc_2").build(),
-		"list_1":      listRes("list_1").prop(p.LoadBalancer, "lb_1").build(),
-		"list_1.2":    listRes("list_1.2").prop(p.LoadBalancer, "lb_1").build(),
-		"list_2":      listRes("list_2").prop(p.LoadBalancer, "lb_2").build(),
-		"list_3":      listRes("list_3").prop(p.LoadBalancer, "lb_3").build(),
+		"eu-west-1":   resourcetest.New("eu-west-1", "region").Build(),
+		"inst_1":      resourcetest.Instance("inst_1").Prop(p.Subnet, "sub_1").Prop(p.Vpc, "vpc_1").Prop(p.Name, "instance1-name").Build(),
+		"inst_2":      resourcetest.Instance("inst_2").Prop(p.Subnet, "sub_2").Prop(p.Vpc, "vpc_1").Prop(p.SecurityGroups, []string{"secgroup_1"}).Build(),
+		"inst_3":      resourcetest.Instance("inst_3").Prop(p.Subnet, "sub_3").Prop(p.Vpc, "vpc_2").Build(),
+		"inst_4":      resourcetest.Instance("inst_4").Prop(p.Subnet, "sub_3").Prop(p.Vpc, "vpc_2").Prop(p.SecurityGroups, []string{"secgroup_1", "secgroup_2"}).Prop(p.SSHKey, "my_key_pair").Build(),
+		"inst_5":      resourcetest.Instance("inst_5").Build(),
+		"vpc_1":       resourcetest.VPC("vpc_1").Build(),
+		"vpc_2":       resourcetest.VPC("vpc_2").Build(),
+		"secgroup_1":  resourcetest.SecGroup("secgroup_1").Prop(p.Name, "my_secgroup").Prop(p.Vpc, "vpc_1").Build(),
+		"secgroup_2":  resourcetest.SecGroup("secgroup_2").Prop(p.Vpc, "vpc_1").Build(),
+		"sub_1":       resourcetest.Subnet("sub_1").Prop(p.Vpc, "vpc_1").Build(),
+		"sub_2":       resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_1").Build(),
+		"sub_3":       resourcetest.Subnet("sub_3").Prop(p.Vpc, "vpc_2").Build(),
+		"sub_4":       resourcetest.Subnet("sub_4").Build(),
+		"my_key_pair": resourcetest.Keypair("my_key_pair").Build(),
+		"igw_1":       resourcetest.InternetGw("igw_1").Prop(p.Vpcs, []string{"vpc_2"}).Build(),
+		"rt_1":        resourcetest.RouteTable("rt_1").Prop(p.Vpc, "vpc_1").Prop(p.Main, false).Build(),
+		"lb_1":        resourcetest.LoadBalancer("lb_1").Prop(p.Name, "my_loadbalancer").Prop(p.Vpc, "vpc_1").Build(),
+		"lb_2":        resourcetest.LoadBalancer("lb_2").Prop(p.Vpc, "vpc_2").Build(),
+		"lb_3":        resourcetest.LoadBalancer("lb_3").Prop(p.Vpc, "vpc_1").Build(),
+		"tg_1":        resourcetest.TargetGroup("tg_1").Prop(p.Vpc, "vpc_1").Build(),
+		"tg_2":        resourcetest.TargetGroup("tg_2").Prop(p.Vpc, "vpc_2").Build(),
+		"list_1":      resourcetest.Listener("list_1").Prop(p.LoadBalancer, "lb_1").Build(),
+		"list_1.2":    resourcetest.Listener("list_1.2").Prop(p.LoadBalancer, "lb_1").Build(),
+		"list_2":      resourcetest.Listener("list_2").Prop(p.LoadBalancer, "lb_2").Build(),
+		"list_3":      resourcetest.Listener("list_3").Prop(p.LoadBalancer, "lb_3").Build(),
 	}
 
 	expectedChildren := map[string][]string{
@@ -409,9 +410,9 @@ func TestBuildStorageRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"eu-west-1":   testRes("eu-west-1", "region").build(),
-		"bucket_eu_1": buckRes("bucket_eu_1").prop(p.Grants, []*graph.Grant{{GranteeID: "usr_2", Permission: "Write"}}).build(),
-		"bucket_eu_2": buckRes("bucket_eu_2").prop(p.Grants, []*graph.Grant{{GranteeID: "usr_1", Permission: "Write"}}).build(),
+		"eu-west-1":   resourcetest.New("eu-west-1", "region").Build(),
+		"bucket_eu_1": resourcetest.Bucket("bucket_eu_1").Prop(p.Grants, []*graph.Grant{{GranteeID: "usr_2", Permission: "Write"}}).Build(),
+		"bucket_eu_2": resourcetest.Bucket("bucket_eu_2").Prop(p.Grants, []*graph.Grant{{GranteeID: "usr_1", Permission: "Write"}}).Build(),
 	}
 	expectedChildren := map[string][]string{
 		"eu-west-1":   {"bucket_eu_1", "bucket_eu_2"},
@@ -469,14 +470,14 @@ func TestBuildDnsRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"/hostedzone/12345": zoneRes("/hostedzone/12345").prop(p.Name, "my.first.domain").build(),
-		"/hostedzone/23456": zoneRes("/hostedzone/23456").prop(p.Name, "my.second.domain").build(),
-		"/hostedzone/34567": zoneRes("/hostedzone/34567").prop(p.Name, "my.third.domain").build(),
-		"awls-91fa0a45":     recRes("awls-91fa0a45").prop(p.Name, "subdomain1.my.first.domain").prop(p.Type, "A").prop(p.TTL, 10).prop(p.Records, []string{"1.2.3.4", "2.3.4.5"}).build(),
-		"awls-920c0a46":     recRes("awls-920c0a46").prop(p.Name, "subdomain2.my.first.domain").prop(p.Type, "A").prop(p.TTL, 10).prop(p.Records, []string{"3.4.5.6"}).build(),
-		"awls-be1e0b6a":     recRes("awls-be1e0b6a").prop(p.Name, "subdomain3.my.first.domain").prop(p.Type, "CNAME").prop(p.TTL, 60).prop(p.Records, []string{"4.5.6.7"}).build(),
-		"awls-9c420a99":     recRes("awls-9c420a99").prop(p.Name, "subdomain1.my.second.domain").prop(p.Type, "A").prop(p.TTL, 30).prop(p.Records, []string{"5.6.7.8"}).build(),
-		"awls-c9b80bbe":     recRes("awls-c9b80bbe").prop(p.Name, "subdomain3.my.second.domain").prop(p.Type, "CNAME").prop(p.TTL, 10).prop(p.Records, []string{"6.7.8.9"}).build(),
+		"/hostedzone/12345": resourcetest.Zone("/hostedzone/12345").Prop(p.Name, "my.first.domain").Build(),
+		"/hostedzone/23456": resourcetest.Zone("/hostedzone/23456").Prop(p.Name, "my.second.domain").Build(),
+		"/hostedzone/34567": resourcetest.Zone("/hostedzone/34567").Prop(p.Name, "my.third.domain").Build(),
+		"awls-91fa0a45":     resourcetest.Record("awls-91fa0a45").Prop(p.Name, "subdomain1.my.first.domain").Prop(p.Type, "A").Prop(p.TTL, 10).Prop(p.Records, []string{"1.2.3.4", "2.3.4.5"}).Build(),
+		"awls-920c0a46":     resourcetest.Record("awls-920c0a46").Prop(p.Name, "subdomain2.my.first.domain").Prop(p.Type, "A").Prop(p.TTL, 10).Prop(p.Records, []string{"3.4.5.6"}).Build(),
+		"awls-be1e0b6a":     resourcetest.Record("awls-be1e0b6a").Prop(p.Name, "subdomain3.my.first.domain").Prop(p.Type, "CNAME").Prop(p.TTL, 60).Prop(p.Records, []string{"4.5.6.7"}).Build(),
+		"awls-9c420a99":     resourcetest.Record("awls-9c420a99").Prop(p.Name, "subdomain1.my.second.domain").Prop(p.Type, "A").Prop(p.TTL, 30).Prop(p.Records, []string{"5.6.7.8"}).Build(),
+		"awls-c9b80bbe":     resourcetest.Record("awls-c9b80bbe").Prop(p.Name, "subdomain3.my.second.domain").Prop(p.Type, "CNAME").Prop(p.TTL, 10).Prop(p.Records, []string{"6.7.8.9"}).Build(),
 	}
 	expectedChildren := map[string][]string{
 		"/hostedzone/12345": {"awls-91fa0a45", "awls-920c0a46", "awls-be1e0b6a"},
@@ -488,7 +489,10 @@ func TestBuildDnsRdfGraph(t *testing.T) {
 }
 
 func TestBuildEmptyRdfGraphWhenNoData(t *testing.T) {
-	expect := `/node<eu-west-1>	"rdf:type"@[]	/node<cloud-owl:Region>`
+
+	expectG := graph.NewGraph()
+	expectG.AddResource(resourcetest.New("eu-west-1", "region").Build())
+
 	access := Access{IAMAPI: &mockIam{}, region: "eu-west-1"}
 
 	g, err := access.FetchResources()
@@ -497,8 +501,8 @@ func TestBuildEmptyRdfGraphWhenNoData(t *testing.T) {
 	}
 
 	result := g.MustMarshal()
-	if result != expect {
-		t.Fatalf("got [%s]\nwant [%s]", result, expect)
+	if result != expectG.MustMarshal() {
+		t.Fatalf("got [%s]\nwant [%s]", result, expectG.MustMarshal())
 	}
 
 	infra := Infra{EC2API: &mockEc2{}, ELBV2API: &mockELB{}, RDSAPI: &mockRDS{}, region: "eu-west-1"}
@@ -509,8 +513,8 @@ func TestBuildEmptyRdfGraphWhenNoData(t *testing.T) {
 	}
 
 	result = g.MustMarshal()
-	if result != expect {
-		t.Fatalf("got [%s]\nwant [%s]", result, expect)
+	if result != expectG.MustMarshal() {
+		t.Fatalf("got [%s]\nwant [%s]", result, expectG.MustMarshal())
 	}
 }
 
