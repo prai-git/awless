@@ -312,7 +312,7 @@ my_vpc_2`
 }
 
 func TestDiffDisplay(t *testing.T) {
-	rootNode := graph.InitResource("eu-west-1", "region")
+	rootNode := graph.InitResource("region", "eu-west-1")
 	diff, err := createDiff(rootNode)
 	if err != nil {
 		t.Fatal(err)
@@ -367,7 +367,7 @@ func TestDiffDisplay(t *testing.T) {
 
 func TestDateLists(t *testing.T) {
 	g := graph.NewGraph()
-	r := resourcetest.New("eu-west-1", "region").Build()
+	r := resourcetest.Region("eu-west-1").Build()
 	user1 := resourcetest.User("user1").Prop("Name", "my_username_1").Build()
 	user2 := resourcetest.User("user2").Prop("Name", "my_username_2").Prop("PasswordLastUsed", time.Unix(1482405203, 0).UTC()).Build()
 	user3 := resourcetest.User("user3").Prop("Name", "my_username_3").Prop("PasswordLastUsed", time.Unix(1481358937, 0).UTC()).Build()
@@ -623,7 +623,7 @@ func TestCompareInterface(t *testing.T) {
 }
 
 func createInfraGraph() *graph.Graph {
-	r := resourcetest.New("eu-west-1", "region").Build()
+	r := resourcetest.Region("eu-west-1").Build()
 	inst1 := resourcetest.Instance("inst_1").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.PublicIP, "1.2.3.4").Prop(p.State, "running").Build()
 	inst2 := resourcetest.Instance("inst_2").Prop(p.Name, "django").Prop(p.Type, "t2.medium").Prop(p.State, "stopped").Build()
 	inst3 := resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build()

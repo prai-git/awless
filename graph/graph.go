@@ -63,7 +63,7 @@ func (g *Graph) AddAppliesOnRelation(parent, child *Resource) error {
 }
 
 func (g *Graph) GetResource(t string, id string) (*Resource, error) {
-	resource := InitResource(id, t)
+	resource := InitResource(t, id)
 
 	if err := resource.unmarshalFullRdf(g.rdfG); err != nil {
 		return resource, err

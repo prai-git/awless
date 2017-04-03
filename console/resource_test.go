@@ -26,12 +26,12 @@ import (
 func TestResourceDisplay(t *testing.T) {
 	g := graph.NewGraph()
 
-	res1 := graph.InitResource("inst_1", "instance")
+	res1 := graph.InitResource("instance", "inst_1")
 	res1.Properties = map[string]interface{}{
 		"ID":   "inst_1",
 		"Name": "instance 1",
 	}
-	res2 := graph.InitResource("inst_2", "instance")
+	res2 := graph.InitResource("instance", "inst_2")
 
 	if err := g.AddResource(res1, res2); err != nil {
 		t.Fatal(err)

@@ -152,7 +152,7 @@ func TestMarshalUnmarshalFullRdf(t *testing.T) {
 			t.Fatal(err)
 		}
 		g.Add(triples...)
-		rawRes := InitResource(r.Id(), r.Type())
+		rawRes := InitResource(r.Type(), r.Id())
 		err = rawRes.unmarshalFullRdf(g)
 		if err != nil {
 			t.Fatal(err)
@@ -171,7 +171,7 @@ func TestMarshalUnmarshalList(t *testing.T) {
 		t.Fatal(err)
 	}
 	g.Add(triples...)
-	rawRes := InitResource(r.Id(), r.Type())
+	rawRes := InitResource(r.Type(), r.Id())
 	err = rawRes.unmarshalFullRdf(g)
 	if err != nil {
 		t.Fatal(err)
@@ -205,7 +205,7 @@ func TestMarshalUnmarshalFirewallRules(t *testing.T) {
 		t.Fatal(err)
 	}
 	g.Add(triples...)
-	rawRes := InitResource(r.Id(), r.Type())
+	rawRes := InitResource(r.Type(), r.Id())
 	err = rawRes.unmarshalFullRdf(g)
 	if err != nil {
 		t.Fatal(err)
@@ -235,7 +235,7 @@ func TestMarshalUnmarshalRouteTables(t *testing.T) {
 		t.Fatal(err)
 	}
 	g.Add(triples...)
-	rawRes := InitResource(r.Id(), r.Type())
+	rawRes := InitResource(r.Type(), r.Id())
 	err = rawRes.unmarshalFullRdf(g)
 	if err != nil {
 		t.Fatal(err)
@@ -262,7 +262,7 @@ func TestMarshalUnmarshalGrants(t *testing.T) {
 		t.Fatal(err)
 	}
 	g.Add(triples...)
-	rawRes := InitResource(r.Id(), r.Type())
+	rawRes := InitResource(r.Type(), r.Id())
 	err = rawRes.unmarshalFullRdf(g)
 	if err != nil {
 		t.Fatal(err)
@@ -372,7 +372,7 @@ func BenchmarkRdfUnmarshaling(b *testing.B) {
 	b.Run("full RDF", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			for _, r := range resources {
-				rawRes := InitResource(r.Id(), r.Type())
+				rawRes := InitResource(r.Type(), r.Id())
 				if err := rawRes.unmarshalFullRdf(fullRdfGraph); err != nil {
 					b.Fatal(err)
 				}

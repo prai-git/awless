@@ -50,7 +50,7 @@ func (r *ByProperty) Resolve(g *Graph) ([]*Resource, error) {
 		if err != nil {
 			return resources, err
 		}
-		r := InitResource(s.ID().String(), rt)
+		r := InitResource(rt, s.ID().String())
 
 		if err := r.unmarshalFullRdf(g.rdfG); err != nil {
 			return resources, err
@@ -108,7 +108,7 @@ func (r *ByType) Resolve(g *Graph) ([]*Resource, error) {
 	}
 	for _, t := range triples {
 		s := t.Subject()
-		r := InitResource(s.ID().String(), r.Typ)
+		r := InitResource(r.Typ, s.ID().String())
 		err := r.unmarshalFullRdf(g.rdfG)
 		if err != nil {
 			return resources, err

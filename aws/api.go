@@ -438,7 +438,7 @@ func (s *Queue) fetch_all_queue_graph() (*graph.Graph, []*string, error) {
 		wg.Add(1)
 		go func(url *string) {
 			defer wg.Done()
-			res := graph.InitResource(awssdk.StringValue(url), cloud.Queue)
+			res := graph.InitResource(cloud.Queue, awssdk.StringValue(url))
 			res.Properties[properties.ID] = awssdk.StringValue(url)
 			attrs, err := s.GetQueueAttributes(&sqs.GetQueueAttributesInput{AttributeNames: []*string{awssdk.String("All")}, QueueUrl: url})
 			if e, ok := err.(awserr.RequestFailure); ok && (e.Code() == sqs.ErrCodeQueueDoesNotExist || e.Code() == sqs.ErrCodeQueueDeletedRecently) {

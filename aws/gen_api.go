@@ -191,7 +191,7 @@ func (s *Infra) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}
@@ -1099,7 +1099,7 @@ func (s *Access) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}
@@ -1414,7 +1414,7 @@ func (s *Storage) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}
@@ -1581,7 +1581,7 @@ func (s *Notification) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}
@@ -1799,7 +1799,7 @@ func (s *Queue) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}
@@ -1931,7 +1931,7 @@ func (s *Dns) FetchResources() (*graph.Graph, error) {
 		return g, nil
 	}
 
-	regionN := graph.InitResource(s.region, cloud.Region)
+	regionN := graph.InitResource(cloud.Region, s.region)
 	if err := g.AddResource(regionN); err != nil {
 		return g, err
 	}

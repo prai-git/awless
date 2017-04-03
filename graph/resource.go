@@ -35,7 +35,7 @@ type Resource struct {
 	Meta       Properties
 }
 
-func InitResource(id string, kind string) *Resource {
+func InitResource(kind, id string) *Resource {
 	return &Resource{id: id, kind: kind, Properties: make(Properties), Meta: make(Properties)}
 }
 

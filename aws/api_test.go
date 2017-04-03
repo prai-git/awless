@@ -215,7 +215,7 @@ func TestBuildInfraRdfGraph(t *testing.T) {
 		{InstanceId: awssdk.String("inst_2"), SubnetId: awssdk.String("sub_2"), VpcId: awssdk.String("vpc_1"), SecurityGroups: []*ec2.GroupIdentifier{{GroupId: awssdk.String("secgroup_1")}}},
 		{InstanceId: awssdk.String("inst_3"), SubnetId: awssdk.String("sub_3"), VpcId: awssdk.String("vpc_2")},
 		{InstanceId: awssdk.String("inst_4"), SubnetId: awssdk.String("sub_3"), VpcId: awssdk.String("vpc_2"), SecurityGroups: []*ec2.GroupIdentifier{{GroupId: awssdk.String("secgroup_1")}, {GroupId: awssdk.String("secgroup_2")}}, KeyName: awssdk.String("my_key_pair")},
-		{InstanceId: awssdk.String("inst_5"), SubnetId: nil, VpcId: nil}, // terminated instance (no vpc, subnet ids)
+		{InstanceId: awssdk.String("inst_5"), SubnetId: nil, VpcId: nil, KeyName: awssdk.String("unexisting_keypair")}, // terminated instance (no vpc, subnet ids)
 	}
 
 	vpcs := []*ec2.Vpc{
@@ -296,12 +296,12 @@ func TestBuildInfraRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"eu-west-1":   resourcetest.New("eu-west-1", "region").Build(),
+		"eu-west-1":   resourcetest.Region("eu-west-1").Build(),
 		"inst_1":      resourcetest.Instance("inst_1").Prop(p.Subnet, "sub_1").Prop(p.Vpc, "vpc_1").Prop(p.Name, "instance1-name").Build(),
 		"inst_2":      resourcetest.Instance("inst_2").Prop(p.Subnet, "sub_2").Prop(p.Vpc, "vpc_1").Prop(p.SecurityGroups, []string{"secgroup_1"}).Build(),
 		"inst_3":      resourcetest.Instance("inst_3").Prop(p.Subnet, "sub_3").Prop(p.Vpc, "vpc_2").Build(),
 		"inst_4":      resourcetest.Instance("inst_4").Prop(p.Subnet, "sub_3").Prop(p.Vpc, "vpc_2").Prop(p.SecurityGroups, []string{"secgroup_1", "secgroup_2"}).Prop(p.SSHKey, "my_key_pair").Build(),
-		"inst_5":      resourcetest.Instance("inst_5").Build(),
+		"inst_5":      resourcetest.Instance("inst_5").Prop(p.SSHKey, "unexisting_keypair").Build(),
 		"vpc_1":       resourcetest.VPC("vpc_1").Build(),
 		"vpc_2":       resourcetest.VPC("vpc_2").Build(),
 		"secgroup_1":  resourcetest.SecGroup("secgroup_1").Prop(p.Name, "my_secgroup").Prop(p.Vpc, "vpc_1").Build(),
@@ -410,7 +410,7 @@ func TestBuildStorageRdfGraph(t *testing.T) {
 	}
 
 	expected := map[string]*graph.Resource{
-		"eu-west-1":   resourcetest.New("eu-west-1", "region").Build(),
+		"eu-west-1":   resourcetest.Region("eu-west-1").Build(),
 		"bucket_eu_1": resourcetest.Bucket("bucket_eu_1").Prop(p.Grants, []*graph.Grant{{GranteeID: "usr_2", Permission: "Write"}}).Build(),
 		"bucket_eu_2": resourcetest.Bucket("bucket_eu_2").Prop(p.Grants, []*graph.Grant{{GranteeID: "usr_1", Permission: "Write"}}).Build(),
 	}
@@ -491,7 +491,7 @@ func TestBuildDnsRdfGraph(t *testing.T) {
 func TestBuildEmptyRdfGraphWhenNoData(t *testing.T) {
 
 	expectG := graph.NewGraph()
-	expectG.AddResource(resourcetest.New("eu-west-1", "region").Build())
+	expectG.AddResource(resourcetest.Region("eu-west-1").Build())
 
 	access := Access{IAMAPI: &mockIam{}, region: "eu-west-1"}
 
@@ -574,12 +574,12 @@ func compareResources(t *testing.T, g *graph.Graph, resources []*graph.Resource,
 		children := mustGetChildrenId(g, got)
 		sort.Strings(children)
 		if g, w := children, expectedChildren[got.Id()]; !reflect.DeepEqual(g, w) {
-			t.Fatalf("children: got %v, want %v", g, w)
+			t.Fatalf("'%s' children: got %v, want %v", got.Id(), g, w)
 		}
 		appliedOn := mustGetAppliedOnId(g, got)
 		sort.Strings(appliedOn)
 		if g, w := appliedOn, expectedAppliedOn[got.Id()]; !reflect.DeepEqual(g, w) {
-			t.Fatalf("appliedOn: got %v, want %v", g, w)
+			t.Fatalf("'%s' appliedOn: got %v, want %v", got.Id(), g, w)
 		}
 	}
 }

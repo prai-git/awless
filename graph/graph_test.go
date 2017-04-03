@@ -36,7 +36,7 @@ func TestAddGraphRelation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g.AddParentRelation(InitResource("subnet_1", "subnet"), res)
+		g.AddParentRelation(InitResource("subnet", "subnet_1"), res)
 
 		exp := `/node<inst_1>	"rdf:type"@[]	/node<cloud-owl:Instance>
 /node<subnet_1>	"parent_of"@[]	/node<inst_1>`
@@ -54,7 +54,7 @@ func TestAddGraphRelation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		g.AddAppliesOnRelation(InitResource("subnet_1", "subnet"), res)
+		g.AddAppliesOnRelation(InitResource("subnet", "subnet_1"), res)
 
 		exp := `/node<inst_1>	"rdf:type"@[]	/node<cloud-owl:Instance>
 /node<subnet_1>	"applies_on"@[]	/node<inst_1>`
