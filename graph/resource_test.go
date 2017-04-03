@@ -24,6 +24,8 @@ import (
 	"reflect"
 	"runtime/pprof"
 	"sort"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -382,7 +384,7 @@ func BenchmarkRdfUnmarshaling(b *testing.B) {
 	b.Run("json RDF", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			for _, r := range resources {
-				if _, err := jsonRdfGraph.GetResource(r.Id(), r.Type()); err != nil {
+				if _, err := jsonRdfGraph.GetResourceJson(r.Type(), r.Id()); err != nil {
 					b.Fatal(err)
 				}
 			}
@@ -445,4 +447,92 @@ func (prop *Property) marshalRDF() (*triple.Object, error) {
 		return nil, err
 	}
 	return triple.NewLiteralObject(propL), nil
+}
+
+func (g *Graph) GetResourceJson(t string, id string) (*Resource, error) {
+	resource := InitResource(id, t)
+
+	node, err := resource.toRDFNode()
+	if err != nil {
+		return resource, err
+	}
+
+	propsTriples, err := g.rdfG.TriplesForSubjectPredicate(node, rdf.PropertyPredicate)
+	if err != nil {
+		return resource, err
+	}
+	if er := resource.Properties.unmarshalJsonRDF(propsTriples); er != nil {
+		return resource, er
+	}
+
+	return resource, nil
+}
+
+func (props Properties) unmarshalJsonRDF(triples []*triple.Triple) error {
+	for _, tr := range triples {
+		prop := &Property{}
+		if err := prop.unmarshalJsonRDF(tr); err != nil {
+			return err
+		}
+		props[prop.Key] = prop.Value
+	}
+
+	return nil
+}
+
+func (prop *Property) unmarshalJsonRDF(t *triple.Triple) error {
+	oL, err := t.Object().Literal()
+	if err != nil {
+		return err
+	}
+	propStr, err := oL.Text()
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal([]byte(propStr), prop); err != nil {
+		fmt.Printf("cannot unmarshal %s: %s\n", propStr, err)
+	}
+
+	switch {
+	case strings.HasSuffix(strings.ToLower(prop.Key), "time"), strings.HasSuffix(strings.ToLower(prop.Key), "date"):
+		t, er := time.Parse(time.RFC3339, fmt.Sprint(prop.Value))
+		if er == nil {
+			prop.Value = t
+		}
+	case strings.HasSuffix(strings.ToLower(prop.Key), "timestamp"):
+		tmstp, er := strconv.Atoi(fmt.Sprint(prop.Value))
+		if er == nil {
+			prop.Value = time.Unix(int64(tmstp), 0)
+		}
+	case strings.HasSuffix(strings.ToLower(prop.Key), "rules"):
+		var propRules struct {
+			Key   string
+			Value []*FirewallRule
+		}
+		err = json.Unmarshal([]byte(propStr), &propRules)
+		if err == nil {
+			prop.Value = propRules.Value
+		}
+	case strings.HasSuffix(strings.ToLower(prop.Key), "routes"):
+		var propRoutes struct {
+			Key   string
+			Value []*Route
+		}
+		err = json.Unmarshal([]byte(propStr), &propRoutes)
+		if err == nil {
+			prop.Value = propRoutes.Value
+		}
+	case strings.HasSuffix(strings.ToLower(prop.Key), "grants"):
+		var propGrants struct {
+			Key   string
+			Value []*Grant
+		}
+		err = json.Unmarshal([]byte(propStr), &propGrants)
+		if err == nil {
+			prop.Value = propGrants.Value
+		}
+	}
+
+	return nil
 }
