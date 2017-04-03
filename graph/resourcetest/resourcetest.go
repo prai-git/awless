@@ -1,6 +1,9 @@
 package resourcetest
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/wallix/awless/cloud/properties"
 	"github.com/wallix/awless/graph"
 )
@@ -95,4 +98,19 @@ func (b *rBuilder) Build() *graph.Resource {
 	res := graph.InitResource(b.typ, b.id)
 	res.Properties = b.props
 	return res
+}
+
+func AddParents(g *graph.Graph, relations ...string) {
+	for _, rel := range relations {
+		splits := strings.Split(rel, "->")
+		if len(splits) != 2 {
+			panic(fmt.Sprintf("invalid relation '%s'", rel))
+		}
+		r1 := graph.InitResource("", strings.TrimSpace(splits[0]))
+		r2 := graph.InitResource("", strings.TrimSpace(splits[1]))
+		err := g.AddParentRelation(r1, r2)
+		if err != nil {
+			panic(err)
+		}
+	}
 }

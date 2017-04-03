@@ -18,7 +18,6 @@ package console
 
 import (
 	"bytes"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -367,14 +366,11 @@ func TestDiffDisplay(t *testing.T) {
 
 func TestDateLists(t *testing.T) {
 	g := graph.NewGraph()
-	r := resourcetest.Region("eu-west-1").Build()
-	user1 := resourcetest.User("user1").Prop("Name", "my_username_1").Build()
-	user2 := resourcetest.User("user2").Prop("Name", "my_username_2").Prop("PasswordLastUsed", time.Unix(1482405203, 0).UTC()).Build()
-	user3 := resourcetest.User("user3").Prop("Name", "my_username_3").Prop("PasswordLastUsed", time.Unix(1481358937, 0).UTC()).Build()
-	g.AddResource(r, user1, user2, user3)
-	g.AddParentRelation(r, user1)
-	g.AddParentRelation(r, user2)
-	g.AddParentRelation(r, user3)
+	g.AddResource(resourcetest.Region("eu-west-1").Build(),
+		resourcetest.User("user1").Prop("Name", "my_username_1").Build(),
+		resourcetest.User("user2").Prop("Name", "my_username_2").Prop("PasswordLastUsed", time.Unix(1482405203, 0).UTC()).Build(),
+		resourcetest.User("user3").Prop("Name", "my_username_3").Prop("PasswordLastUsed", time.Unix(1481358937, 0).UTC()).Build(),
+	)
 
 	headers := []ColumnDefinition{
 		StringColumnDefinition{Prop: "ID"},
@@ -623,37 +619,64 @@ func TestCompareInterface(t *testing.T) {
 }
 
 func createInfraGraph() *graph.Graph {
-	r := resourcetest.Region("eu-west-1").Build()
-	inst1 := resourcetest.Instance("inst_1").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.PublicIP, "1.2.3.4").Prop(p.State, "running").Build()
-	inst2 := resourcetest.Instance("inst_2").Prop(p.Name, "django").Prop(p.Type, "t2.medium").Prop(p.State, "stopped").Build()
-	inst3 := resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build()
-	vpc1 := resourcetest.VPC("vpc_1").Build()
-	vpc2 := resourcetest.VPC("vpc_2").Prop(p.Name, "my_vpc_2").Build()
-	sub1 := resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Build()
-	sub2 := resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Build()
 	g := graph.NewGraph()
-	g.AddResource(r, inst1, inst2, inst3, vpc1, vpc2, sub1, sub2)
-	g.AddParentRelation(r, vpc1)
-	g.AddParentRelation(r, vpc2)
-	g.AddParentRelation(sub1, inst1)
-	g.AddParentRelation(sub2, inst2)
-	g.AddParentRelation(sub2, inst3)
-	g.AddParentRelation(vpc1, sub1)
-	g.AddParentRelation(vpc2, sub2)
+	g.AddResource(resourcetest.Region("eu-west-1").Build(),
+		resourcetest.Instance("inst_1").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.PublicIP, "1.2.3.4").Prop(p.State, "running").Build(),
+		resourcetest.Instance("inst_2").Prop(p.Name, "django").Prop(p.Type, "t2.medium").Prop(p.State, "stopped").Build(),
+		resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build(),
+		resourcetest.VPC("vpc_1").Build(),
+		resourcetest.VPC("vpc_2").Prop(p.Name, "my_vpc_2").Build(),
+		resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Build(),
+		resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Build(),
+	)
 
 	return g
 }
 
 func createDiff(root *graph.Resource) (*graph.Diff, error) {
-	localDiffG, err := graph.NewGraphFromFile(filepath.Join("testdata", "local_infra_diff.rdf"))
+	localDiffG := graph.NewGraph()
+	err := localDiffG.AddResource(
+		resourcetest.Region("eu-west-1").Build(),
+		resourcetest.Instance("inst_1").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.State, "running").Build(),
+		resourcetest.Instance("inst_2").Build(),
+		resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build(),
+		resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Build(),
+		resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Build(),
+		resourcetest.VPC("vpc_1").Prop(p.Default, true).Build(),
+		resourcetest.VPC("vpc_2").Prop(p.Name, "my_vpc_2").Build(),
+	)
+	resourcetest.AddParents(localDiffG,
+		"eu-west-1 -> vpc_1", "eu-west-1 -> vpc_2",
+		"vpc_1 -> sub_1", "vpc_2 -> sub_2",
+		"sub_1 -> inst_1", "sub_2 -> inst_2", "sub_2 -> inst_3",
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	remoteDiffG, err := graph.NewGraphFromFile(filepath.Join("testdata", "remote_infra_diff.rdf"))
+	remoteDiffG := graph.NewGraph()
+	err = remoteDiffG.AddResource(
+		resourcetest.Region("eu-west-1").Build(),
+		resourcetest.Instance("inst_1").Prop(p.ID, "new_id").Prop(p.Name, "redis").Prop(p.Type, "t2.micro").Prop(p.State, "running").Build(),
+		resourcetest.Instance("inst_3").Prop(p.Name, "apache").Prop(p.Type, "t2.xlarge").Prop(p.State, "running").Build(),
+		resourcetest.Instance("inst_4").Build(),
+		resourcetest.Instance("inst_5").Build(),
+		resourcetest.Instance("inst_6").Build(),
+		resourcetest.Subnet("sub_1").Prop(p.Name, "my_subnet").Prop(p.Vpc, "vpc_1").Build(),
+		resourcetest.Subnet("sub_2").Prop(p.Vpc, "vpc_2").Build(),
+		resourcetest.Subnet("new_subnet").Build(),
+		resourcetest.VPC("vpc_1").Build(),
+		resourcetest.VPC("vpc_2").Prop(p.Name, "my_vpc_2").Build(),
+	)
+	resourcetest.AddParents(remoteDiffG,
+		"eu-west-1 -> vpc_1", "eu-west-1 -> vpc_2",
+		"vpc_1 -> sub_1", "vpc_2 -> sub_2", "vpc_2 -> new_subnet",
+		"sub_1 -> inst_1", "sub_2 -> inst_3", "sub_2 -> inst_4", "sub_2 -> inst_5", "new_subnet -> inst_6",
+	)
 	if err != nil {
 		panic(err)
 	}
+
 	return graph.Differ.Run(root, localDiffG, remoteDiffG)
 }
 

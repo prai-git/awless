@@ -14,27 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package graph
+package graph_test
 
 import (
 	"testing"
+
+	"github.com/wallix/awless/graph"
+	"github.com/wallix/awless/graph/resourcetest"
 )
 
 func TestResourceNameToId(t *testing.T) {
-	g := NewGraph()
-	g.Unmarshal([]byte(`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
-  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
-  /node<inst_1>  "cloud:name"@[] "redis"^^type:text
-	/node<inst_2>  "rdf:type"@[] /node<cloud-owl:Instance>
-  /node<inst_2>  "cloud:id"@[] "inst_2"^^type:text
-  /node<inst_2>  "cloud:name"@[] "redis2"^^type:text
-	/node<inst_3>  "rdf:type"@[] /node<cloud-owl:Instance>
-  /node<inst_3>  "cloud:id"@[] "inst_3"^^type:text
-  /node<inst_3>  "cloud:name"@[] "mongo"^^type:text
-  /node<inst_3>  "cloud:creationDate"@[] "2017-01-10T16:47:18Z"^^type:text
-	/node<subnet_1>  "rdf:type"@[] /node<cloud-owl:Subnet>
-  /node<subnet_1>  "cloud:id"@[] "subnet_1"^^type:text
-  /node<subnet_1>  "cloud:name"@[] "mongo"^^type:text`))
+	g := graph.NewGraph()
+	g.AddResource(
+		resourcetest.Instance("inst_1").Prop("Name", "redis").Build(),
+		resourcetest.Instance("inst_2").Prop("Name", "redis2").Build(),
+		resourcetest.Instance("inst_3").Prop("Name", "mongo").Build(),
+		resourcetest.Subnet("subnet_1").Prop("Name", "mongo").Build(),
+	)
 
 	tcases := []struct {
 		name         string
@@ -49,7 +45,7 @@ func TestResourceNameToId(t *testing.T) {
 		{name: "nothere", expectID: "", ok: false},
 	}
 	for i, tcase := range tcases {
-		a := Alias(tcase.name)
+		a := graph.Alias(tcase.name)
 		id, ok := a.ResolveToId(g, tcase.resourceType)
 		if got, want := ok, tcase.ok; got != want {
 			t.Fatalf("%d: got %t, want %t", i, got, want)

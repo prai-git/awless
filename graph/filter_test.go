@@ -1,21 +1,20 @@
-package graph
+package graph_test
 
 import (
 	"testing"
 
 	"github.com/wallix/awless/cloud/properties"
+	"github.com/wallix/awless/graph"
+	"github.com/wallix/awless/graph/resourcetest"
 )
 
 func TestFilterGraph(t *testing.T) {
-	g := NewGraph()
-	g.Unmarshal([]byte(
-		`/node<inst_1>  "rdf:type"@[] /node<cloud-owl:Instance>
-  /node<inst_1>  "cloud:id"@[] "inst_1"^^type:text
-  /node<inst_2>  "rdf:type"@[] /node<cloud-owl:Instance>
-  /node<inst_2>  "cloud:id"@[] "inst_2"^^type:text
-  /node<inst_2>  "cloud:name"@[] "redis"^^type:text
-  /node<sub_1>  "rdf:type"@[] /node<cloud-owl:Subnet>
-  /node<sub_1>  "cloud:id"@[] "sub_1"^^type:text`))
+	g := graph.NewGraph()
+	g.AddResource(
+		resourcetest.Instance("inst_1").Build(),
+		resourcetest.Instance("inst_2").Prop("Name", "redis").Build(),
+		resourcetest.Subnet("sub_1").Build(),
+	)
 	filtered, err := g.Filter("subnet")
 	if err != nil {
 		t.Fatal(err)
@@ -29,7 +28,7 @@ func TestFilterGraph(t *testing.T) {
 		t.Fatalf("got %d, want %d", got, want)
 	}
 
-	filterFn := func(r *Resource) bool {
+	filterFn := func(r *graph.Resource) bool {
 		if r.Properties[properties.ID] == "inst_1" {
 			return true
 		}
@@ -48,13 +47,13 @@ func TestFilterGraph(t *testing.T) {
 		t.Fatalf("got %d, want %d", got, want)
 	}
 
-	filterOne := func(r *Resource) bool {
+	filterOne := func(r *graph.Resource) bool {
 		if r.Properties[properties.ID] == "inst_2" {
 			return true
 		}
 		return false
 	}
-	filterTwo := func(r *Resource) bool {
+	filterTwo := func(r *graph.Resource) bool {
 		if r.Properties[properties.Name] == "redis" {
 			return true
 		}
@@ -77,8 +76,8 @@ func TestFilterGraph(t *testing.T) {
 	}
 
 	filtered, _ = g.Filter("instance",
-		BuildPropertyFilterFunc(properties.ID, "inst"),
-		BuildPropertyFilterFunc(properties.Name, "Redis"),
+		graph.BuildPropertyFilterFunc(properties.ID, "inst"),
+		graph.BuildPropertyFilterFunc(properties.Name, "Redis"),
 	)
 	instances, _ = filtered.GetAllResources("instance")
 	if got, want := len(instances), 1; got != want {
